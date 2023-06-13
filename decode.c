@@ -1,7 +1,30 @@
+/*
+Decode Tree Outline Index
+
+-> BL
+-> BEQ - BRA
+-> ADD - ST
+  '-> ADD - BIS
+  '-> MOV - SXT
+    '-> MOV
+    '-> SWAP
+    '-> SRA - SXT
+  '-> CEX
+  '-> LD - ST
+-> MOVL - MOVH
+-> LDR
+-> STR
+*/
+
 #include "decode.h"
 
-void BEQ_to_BRA(unsigned short argument[], unsigned char* argumentCount){
-  switch((IR&0x1C00) >> 10){
+void BL(unsigned short argument[]){
+  argument[0] = BL_G;
+  argument[1] = offset(IR, 13);
+}
+
+void BEQ_to_BRA(unsigned short argument[]){
+  switch((IR >> 10) & 0x03){
     case BEQ: argument[0] = BEQ_G;  break;
     case BNE: argument[0] = BNE_G;  break;
     case BC:  argument[0] = BC_G;   break;
@@ -12,24 +35,18 @@ void BEQ_to_BRA(unsigned short argument[], unsigned char* argumentCount){
     case BRA: argument[0] = BRA_G;  break;
   }
   argument[1] = offset(IR, 9);
-  *argumentCount = 2;
 }
 
-void ADD_to_ST(unsigned short argument[], unsigned char* argumentCount){
-  printf("decode.c l.19");
-  switch((IR >> 10) & 0x07){ // 12? shouldn't it be 10? wait 13? no 10
-    case 0: ADD_to_BIS(argument, argumentCount); break;
-    case 1: ADD_to_BIS(argument, argumentCount); break;
-    case 2: ADD_to_BIS(argument, argumentCount); break;
-    case 3: /* MOV to CLRCC */
-    case 4: /* CEX */
-    case 5:
-    case 6: LD_to_ST(argument, argumentCount, LD_G); break;
-    case 7: LD_to_ST(argument, argumentCount, ST_G); break;
+void ADD_to_ST(unsigned short argument[]){
+  switch((IR >> 10) & 0x07){
+    case 0: case 1: case 2: ADD_to_BIS(argument); break;
+    case 3: MOV_to_SXT(argument);                 break;
+    case 4: CEX(argument);                        break;
+    case 6: case 7: LD_to_ST(argument, LD_G);     break;
   } 
 }
 
-void MOVL_to_MOVH(unsigned short argument[], unsigned char* argumentCount){
+void MOVL_to_MOVH(unsigned short argument[]){
   switch(IR >> 11 & 0x03){
     case 0: argument[0] = MOVL_G;  break;
     case 1: argument[0] = MOVLZ_G; break;
@@ -38,39 +55,26 @@ void MOVL_to_MOVH(unsigned short argument[], unsigned char* argumentCount){
   }
   argument[1] = databyte(IR);
   argument[2] = DST(IR);
-  *argumentCount = 3;
 }
 
-void LDR(unsigned short argument[], unsigned char* argumentCount){
-  printf("decode.c l.45");
+void LDR(unsigned short argument[]){
   argument[0] = LDR_G;
   argument[1] = relative_offset(IR);
   argument[2] = WB(IR);
   argument[3] = SRC(IR);
   argument[4] = DST(IR);
-  *argumentCount = 5;
 }
 
-void STR(unsigned short argument[], unsigned char* argumentCount){
+void STR(unsigned short argument[]){
   argument[0] = STR_G;
   argument[1] = relative_offset(IR);
   argument[2] = WB(IR);
   argument[3] = SRC(IR);
   argument[4] = DST(IR);
-  *argumentCount = 5;
 }
 
-void LD_to_ST(unsigned short argument[], unsigned char* argumentCount, unsigned char LD_ST_Flag){
-  printf("[decode.c 44]");
-  argument[0] = LD_ST_Flag;
-  argument[1] = PDI(IR);
-  argument[2] = WB(IR);
-  argument[3] = SRC(IR);
-  argument[4] = DST(IR);
-  *argumentCount = 5; 
-}
-
-void ADD_to_BIS(unsigned short argument[], unsigned char* argumentCount){
+/* ADD to ST */
+void ADD_to_BIS(unsigned short argument[]){
   switch(IR >> 8 & 0x0F){
     case 0:  argument[0] = ADD_G;  break;
     case 1:  argument[0] = ADDC_G; break;
@@ -89,5 +93,42 @@ void ADD_to_BIS(unsigned short argument[], unsigned char* argumentCount){
   argument[2] = WB(IR);     // Word/Byte
   argument[3] = SRC(IR);    // Source Register
   argument[4] = DST(IR);    // Destination Register
-  *argumentCount = 5;
+}
+
+void SRA_to_SXT(unsigned short argument[]){
+  switch((IR >> 3) & 0x07){
+    case 0: argument[0] = SRA_G;  break;
+    case 1: argument[0] = RRC_G;  break;
+    case 2: argument[0] = COMP_G; break;
+    case 3: argument[0] = SWPB_G; break;
+    case 4: argument[0] = SXT_G;  break;
+  }
+  /* arguments are within MOV_to_SXT() */
+}
+
+void MOV_to_SXT(unsigned short argument[]){
+  switch((IR >> 7) & 0x03){
+    case 0: argument[0] = MOV_G;  break;
+    case 1: argument[0] = SWAP_G; break;
+    case 2: SRA_to_SXT(argument); break;
+    case 3: break;    // error - SETPRI to CLRCC, not included in assignment 1
+  }
+  argument[1] = WB(IR);
+  argument[2] = SRC(IR);    // argument[2] is ignored during executing of SRA to SXT
+  argument[3] = DST(IR);
+}
+
+void LD_to_ST(unsigned short argument[], unsigned char LD_ST_Flag){
+  argument[0] = LD_ST_Flag;
+  argument[1] = PDI(IR);
+  argument[2] = WB(IR);
+  argument[3] = SRC(IR);
+  argument[4] = DST(IR);
+}
+
+void CEX( unsigned short argument[]){
+  argument[0] = CEX_G;
+  argument[1] = COND(IR); // Condition
+  argument[2] = SRC(IR);  // True
+  argument[3] = DST(IR);  // False
 }

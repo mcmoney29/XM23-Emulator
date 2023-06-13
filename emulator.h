@@ -15,8 +15,9 @@
 #define PC regFile[0][7]                  // Program Counter (R7)
 #define Rx(x) regFile[0][x]               // Register Array 
 #define TICK_SPEED 0                      // pause between ticks in seconds
-#define DST(x) x & 0x07                   // Mask macro for destination bits (Bits 0, 1, 2)
-#define SRC(x) (x >> 3) & 0x07            // Mask macro for source bits (Bits 3, 4, 5)
+#define COND(x) (x >> 6) & 0x0F
+#define DST(x) x & 0x07                   // Mask macro for destination bits (Bits 0, 1, 2) (also used for CEX-FALSE)
+#define SRC(x) (x >> 3) & 0x07            // Mask macro for source bits (Bits 3, 4, 5) (also used for CEX-TRUE)
 #define WB(x) (x >> 6) & 0x01             // Mask macro for word or byte flag
 #define RC(x) (x >> 7) & 0x01             // Mask macro for read or write flag
 #define offset(x, y) ((x & (1 << y)) ? (x | 0xC000) : (x & 0x01FF))

@@ -20,37 +20,21 @@ void fetch() {
 
 void decode(){
   printf("Decoding %04X", IR);
-  unsigned char argumentCount;
   unsigned short argument[MAX_OPERANDS];
 
   switch((IR >> 13) & 0x07){
-    case 0: /* BL */
-      argument[0] = BL_G;
-      argument[1] = offset(IR, 13);
-      argumentCount = 2;
-    break;
-    case 1: BEQ_to_BRA(argument, &argumentCount); break;
-    case 2: ADD_to_ST(argument, &argumentCount); break;
-    case 3: MOVL_to_MOVH(argument, &argumentCount); break;
-    case 4: LDR(argument, &argumentCount); break;
-    case 5: LDR(argument, &argumentCount); break;
-    case 6:
-      /* STR */
-    break;
-    case 7:
-      /* STR */
-    break;
+    case 0: BL(argument); break;
+    case 1: BEQ_to_BRA(argument); break;
+    case 2: ADD_to_ST(argument); break;
+    case 3: MOVL_to_MOVH(argument); break;
+    case 4: case 5: LDR(argument); break;
+    case 6: case 7: STR(argument); break;
     default: printf("Unable to decode :(\n"); break;
   }
-  execute(argument, argumentCount);
+  execute(argument);
 }
 
-void execute(unsigned short argument[], unsigned char argumentCount){
-  printf("\nExecuting... \n");
-  for(int i = 0; i < argumentCount; i++){
-    printf("Argument[%d] = %04X\n\n", i, argument[i]);
-  }
-
+void execute(unsigned short argument[]){
   switch (argument[0]) {
     /******************************************
     - BL

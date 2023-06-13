@@ -13,7 +13,7 @@
 /* globals */
 word_byte regFile REG_SIZE = {
   {0, 0, 0, 0, 0, 0, 0, 0},     // Register Values
-  {0, 1, 2, 4, 8, 16, 32, -1}                                           // Constant Values
+  {0, 1, 2, 4, 8, 16, 32, -1}   // Constant Values
 };
 
 mem memory[MEM_SIZE];           // declare memory
@@ -21,7 +21,7 @@ unsigned short MDR, MAR, IR;    // declare Mem Data Reg, Mem Address Reg, and In
 int cpu_time = 0;               // declare cpu clock
 
 int main(){
-  program* baseProgram = malloc(sizeof(program)); // create base program for stack
+  program* baseProgram = malloc(sizeof(program));     // Create base program for stack
 
   //unsigned char PSW;              // Control Register -> |-|-|-|-|V|N|Z|C|
   int programCount = 0;
@@ -52,14 +52,12 @@ int main(){
         }
 
         /* Promt user to Select Program */
-        printf("Select Program to Run:\n");               // Option Message
-        printProgramOptions(baseProgram->next);           // Print list of loaded programs
-        scanf("%c", &selection); getchar(); printf("\n"); // Get program selection
+        printf("Select Program to Run:\n");                 // Option Message
+        printProgramOptions(baseProgram->next);             // Print list of loaded programs
+        scanf("%c", &selection); getchar(); printf("\n");   // Get program selection
 
         /* Run Program */
-        runProgram(baseProgram->next, selection-48, &PC); // Set PC to program's entry point
-        //printf("PC = %04X\n", PC.word); // test
-        // selection = 'A'; // reset selection so program doesnt carry A
+        runProgram(baseProgram->next, selection-48, &PC);   // Set PC to program's entry point
       break; // end of run
 
       /* Load a Program */
@@ -68,7 +66,7 @@ int main(){
         scanf("%s", fileName); getchar();                           // Read file name from terminal  
         if(load(fileName, &programStartingLocation, programName))   // Load file with that name
           pushProgram(baseProgram, createProgram(programName, programStartingLocation));
-      break; // end of load
+      break;
       
       case 'M': memoryDump(); break;        // Memory Dump
       case 'Q': selection = '\0'; break;    // Quit
