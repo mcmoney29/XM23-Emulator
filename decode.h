@@ -20,16 +20,16 @@ Decode Tree Outline Index
 -> STR
 */
 
-void BL(unsigned short[]);
-void BEQ_to_BRA(unsigned short[]);
-void ADD_to_ST(unsigned short[]);
-  void ADD_to_BIS(unsigned short[]);
-  void MOV_to_SXT(unsigned short[]);
-    void SRA_to_SXT(unsigned short[]);
-  void CEX( unsigned short[]);
-  void LD_to_ST(unsigned short[], unsigned char);
-void MOVL_to_MOVH(unsigned short[]);
-void LDR(unsigned short[]);
-void STR(unsigned short[]);
+void decode_BL(unsigned short[]);
+void decode_BEQ_to_BRA(unsigned short[]);
+void decode_ADD_to_ST(unsigned short[]);
+  void decode_ADD_to_BIS(unsigned short[]);
+  void decode_MOV_to_SXT(unsigned short[]);
+    void decode_SRA_to_SXT(unsigned short[]);
+  void decode_CEX( unsigned short[]);
+  void decode_LD_to_ST(unsigned short[], unsigned char);
+void decode_MOVL_to_MOVH(unsigned short[]);
+void decode_LDR(unsigned short[]);
+void decode_STR(unsigned short[]);
 
 #endif /* DECODE_H */

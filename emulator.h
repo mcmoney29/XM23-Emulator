@@ -27,6 +27,7 @@
 //#define INC(x) (x >> 7) & 0x01;
 #define PDI(x) (x >> 7) & 0x7            // Mask for pre/post inc/dec
 #define relative_offset(x) ((x & (1 << 7)) ? (x >> 7 | 1 << 7) : (x >> 7 & 0x007F))
+#define Bn(n, x) (x >> n) & 0x01
 
 /* Memory */
 #define MEM_SIZE 1 << 16  // Memory Size (1<<16 = 64 KiB)
@@ -48,8 +49,29 @@ enum RW_Flag {READ, WRITE};
 enum WB_Flag {WORD, BYTE};
 enum RC_Flag {REG, CONST};
 
+
+
+/*
+Decode Tree Outline Index
+
+-> BL *
+-> BEQ - BRA  *
+-> ADD - ST 
+  '-> ADD - BIS *
+  '-> MOV - SXT
+    '-> MOV *
+    '-> SWAP  *
+    '-> SRA - SXT *
+  '-> CEX *
+  '-> LD - ST *
+-> MOVL - MOVH *
+-> LDR *
+-> STR *
+*/
+
 /* Instruction */
 enum Instructions {BL_G = 1, BEQ_G, BNE_G, BC_G, BNC_G, BN_G, BGE_G, BLT_G, BRA_G, ADD_G, ADDC_G, SUB_G, SUBC_G, DADD_G, CMP_G, XOR_G, AND_G, OR_G, BIT_G, BIC_G, BIS_G, MOV_G, SWAP_G, SRA_G, RRC_G, COMP_G, SWPB_G, SXT_G, SETPRI_G, SVC_G, SETCC_G, CLRCC_G, CEX_G, LD_G, ST_G, MOVL_G, MOVLZ_G, MOVLS_G, MOVH_G, LDR_G, STR_G};
+enum Instruction_Groups {BL, BEQ_to_BRA, ADD_to_BIS, MOV, SWAP, SRA_to_SXT, CEX, LD_to_ST, MOVL_to_MOVH, LDR, STR};
 enum Branch_Instructions {BEQ, BNE, BC, BNC, BN, BGE, BLT, BRA};
 enum Arithmetic_Instructions {ADD, ADDC, SUB, SUBC, DADD, CMP, XOR, AND, OR, BIT, BIC, BIS};
 
@@ -82,6 +104,19 @@ typedef union BCD_NUM{
   unsigned short word;
   struct nibble nib[4];
 } BCD_NUM;
+
+/* PSW */
+typedef struct PSW_Bits{
+  unsigned        c: 1;      // Carry
+  unsigned        z: 1;      // Zero
+  unsigned        n: 1;      // Negative
+  unsigned      slp: 3;      // SLeeP (unused in Assignment 1)
+  unsigned        v: 1;      // oVerflow
+  unsigned  current: 3;      // Unused in assignment 1
+  unsigned    fault: 1;      //          "
+  unsigned reserved: 4;      //          "
+  unsigned     prev: 3;      //          "
+} PSW_Bits;
 
 void bus(unsigned short, unsigned short*, int, int);
 

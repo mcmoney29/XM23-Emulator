@@ -1,0 +1,14 @@
+v. 0.4.0 (Initial Commit)
+- Created from version 0.3.4 (Lab #3 submission)
+- All Lab 3 specific logic removed (print statments of instructions, etc.)
+
+v. 0.4.1 (June 12, 2023)
+- All instructions required for Assignment 1 are decoded into opcode and operands and sent to exectute();
+  -> Instruction Count has been removed, deemed unecessary
+
+v. 0.4.2 (June 14, 2023)
+- Created execute.c and execute.handling
+- Created execute logic for instructions BL to BRA
+- Started instructions for ADD to SUBC
+  -> Only ADDs are working, need to change function to accept values rather than
+     register numbers such that 1's compliments can be sent in, as well as constants

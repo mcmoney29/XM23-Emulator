@@ -18,12 +18,12 @@ Decode Tree Outline Index
 
 #include "decode.h"
 
-void BL(unsigned short argument[]){
+void decode_BL(unsigned short argument[]){
   argument[0] = BL_G;
-  argument[1] = offset(IR, 13);
+  argument[1] = offset(IR, 13);   // Offset (migos)
 }
 
-void BEQ_to_BRA(unsigned short argument[]){
+void decode_BEQ_to_BRA(unsigned short argument[]){
   switch((IR >> 10) & 0x03){
     case BEQ: argument[0] = BEQ_G;  break;
     case BNE: argument[0] = BNE_G;  break;
@@ -34,47 +34,47 @@ void BEQ_to_BRA(unsigned short argument[]){
     case BLT: argument[0] = BLT_G;  break;
     case BRA: argument[0] = BRA_G;  break;
   }
-  argument[1] = offset(IR, 9);
+  argument[1] = offset(IR, 9);    // Offset (migos)
 }
 
-void ADD_to_ST(unsigned short argument[]){
+void decode_ADD_to_ST(unsigned short argument[]){
   switch((IR >> 10) & 0x07){
-    case 0: case 1: case 2: ADD_to_BIS(argument); break;
-    case 3: MOV_to_SXT(argument);                 break;
-    case 4: CEX(argument);                        break;
-    case 6: case 7: LD_to_ST(argument, LD_G);     break;
+    case 0: case 1: case 2: decode_ADD_to_BIS(argument); break;
+    case 3: decode_MOV_to_SXT(argument);                 break;
+    case 4: decode_CEX(argument);                        break;
+    case 6: case 7: decode_LD_to_ST(argument, LD_G);     break;
   } 
 }
 
-void MOVL_to_MOVH(unsigned short argument[]){
+void decode_MOVL_to_MOVH(unsigned short argument[]){
   switch(IR >> 11 & 0x03){
     case 0: argument[0] = MOVL_G;  break;
     case 1: argument[0] = MOVLZ_G; break;
     case 2: argument[0] = MOVLS_G; break;
     case 3: argument[0] = MOVH_G;  break;
   }
-  argument[1] = databyte(IR);
-  argument[2] = DST(IR);
+  argument[1] = databyte(IR); // Byte of Data
+  argument[2] = DST(IR);      // Destination Register
 }
 
-void LDR(unsigned short argument[]){
+void decode_LDR(unsigned short argument[]){
   argument[0] = LDR_G;
   argument[1] = relative_offset(IR);
-  argument[2] = WB(IR);
-  argument[3] = SRC(IR);
-  argument[4] = DST(IR);
+  argument[2] = WB(IR);     // Word/Byte
+  argument[3] = SRC(IR);    // Source Register
+  argument[4] = DST(IR);    // Destination Register
 }
 
-void STR(unsigned short argument[]){
+void decode_STR(unsigned short argument[]){
   argument[0] = STR_G;
   argument[1] = relative_offset(IR);
-  argument[2] = WB(IR);
-  argument[3] = SRC(IR);
-  argument[4] = DST(IR);
+  argument[2] = WB(IR);     // Word/Byte
+  argument[3] = SRC(IR);    // Source Register
+  argument[4] = DST(IR);    // Destination Register
 }
 
 /* ADD to ST */
-void ADD_to_BIS(unsigned short argument[]){
+void decode_ADD_to_BIS(unsigned short argument[]){
   switch(IR >> 8 & 0x0F){
     case 0:  argument[0] = ADD_G;  break;
     case 1:  argument[0] = ADDC_G; break;
@@ -95,7 +95,7 @@ void ADD_to_BIS(unsigned short argument[]){
   argument[4] = DST(IR);    // Destination Register
 }
 
-void SRA_to_SXT(unsigned short argument[]){
+void decode_SRA_to_SXT(unsigned short argument[]){
   switch((IR >> 3) & 0x07){
     case 0: argument[0] = SRA_G;  break;
     case 1: argument[0] = RRC_G;  break;
@@ -103,32 +103,32 @@ void SRA_to_SXT(unsigned short argument[]){
     case 3: argument[0] = SWPB_G; break;
     case 4: argument[0] = SXT_G;  break;
   }
-  /* arguments are within MOV_to_SXT() */
+  /* arguments are within decode_MOV_to_SXT() */
 }
 
-void MOV_to_SXT(unsigned short argument[]){
+void decode_MOV_to_SXT(unsigned short argument[]){
   switch((IR >> 7) & 0x03){
     case 0: argument[0] = MOV_G;  break;
     case 1: argument[0] = SWAP_G; break;
-    case 2: SRA_to_SXT(argument); break;
-    case 3: break;    // error - SETPRI to CLRCC, not included in assignment 1
+    case 2: decode_SRA_to_SXT(argument); break;
+    case 3: break;    // error -> SETPRI to CLRCC, not included in assignment 1
   }
-  argument[1] = WB(IR);
-  argument[2] = SRC(IR);    // argument[2] is ignored during executing of SRA to SXT
-  argument[3] = DST(IR);
+  argument[1] = WB(IR);     // Word/Byte
+  argument[2] = SRC(IR);    // Source Register (ignored by SRA to SXT during executing) 
+  argument[3] = DST(IR);    // Destination Register
 }
 
-void LD_to_ST(unsigned short argument[], unsigned char LD_ST_Flag){
+void decode_LD_to_ST(unsigned short argument[], unsigned char LD_ST_Flag){
   argument[0] = LD_ST_Flag;
-  argument[1] = PDI(IR);
-  argument[2] = WB(IR);
-  argument[3] = SRC(IR);
-  argument[4] = DST(IR);
+  argument[1] = PDI(IR);    // Pre/Post Decrement Increment
+  argument[2] = WB(IR);     // Word/Byte
+  argument[3] = SRC(IR);    // Source Register
+  argument[4] = DST(IR);    // Destination Register
 }
 
-void CEX( unsigned short argument[]){
+void decode_CEX( unsigned short argument[]){
   argument[0] = CEX_G;
-  argument[1] = COND(IR); // Condition
-  argument[2] = SRC(IR);  // True
-  argument[3] = DST(IR);  // False
+  argument[1] = COND(IR);   // Condition
+  argument[2] = SRC(IR);    // True (Register ?)
+  argument[3] = DST(IR);    // False (Register ?)
 }

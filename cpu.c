@@ -2,12 +2,13 @@
 
 extern mem memory;
 extern int cpu_time;
+extern PSW_Bits PSW;
 
 /* Tick */
 void tick(){
   fetch();
   decode();
-  // execute(); happens in decode now - elegancy??
+  // execute(); happens in decode now
   // cpu_time++;   /* Increment CPU Timer??? */
 }
 
@@ -23,13 +24,13 @@ void decode(){
   unsigned short argument[MAX_OPERANDS];
 
   switch((IR >> 13) & 0x07){
-    case 0: BL(argument); break;
-    case 1: BEQ_to_BRA(argument); break;
-    case 2: ADD_to_ST(argument); break;
-    case 3: MOVL_to_MOVH(argument); break;
-    case 4: case 5: LDR(argument); break;
-    case 6: case 7: STR(argument); break;
-    default: printf("Unable to decode :(\n"); break;
+    case 0: decode_BL(argument); break;
+    case 1: decode_BEQ_to_BRA(argument); break;
+    case 2: decode_ADD_to_ST(argument); break;
+    case 3: decode_MOVL_to_MOVH(argument); break;
+    case 4: case 5: decode_LDR(argument); break;
+    case 6: case 7: decode_STR(argument); break;
+    default: printf("Unable to decode instruction 0x%04X\n", IR); break;
   }
   execute(argument);
 }
@@ -39,9 +40,7 @@ void execute(unsigned short argument[]){
     /******************************************
     - BL
     *****************************************/
-        case BL_G:
-            // Code for BL_G instruction
-            break;
+    case BL_G: execute_BL(argument); break;
     /******************************************
     - BEQ
     - BNE
@@ -52,13 +51,7 @@ void execute(unsigned short argument[]){
     - BLT
     - BRA
     ******************************************/
-        case BEQ_G:
-            // Code for BEQ_G instruction
-            break;
-        case BNE_G:
-            // Code for BNE_G instruction
-            break;
-        case BC_G:
+    case BEQ_G: case BNE_G: case BC_G:
             // Code for BC_G instruction
             break;
         case BNC_G:
@@ -79,8 +72,8 @@ void execute(unsigned short argument[]){
     /******************************************
     - ADD
     - ADDC
-    - SUB
-    - SUBC
+    - SUB   -> Need to fix ADD_SUB() to take value in not register # so we can send in
+    - SUBC  -> 1's compliments values to SUB and SUBC
     - DADD
     - CMP
     - XOR
@@ -89,18 +82,10 @@ void execute(unsigned short argument[]){
     - BIC
     - BIS
     ******************************************/
-        case ADD_G:
-            // Code for ADD_G instruction
-            break;
-        case ADDC_G:
-            // Code for ADDC_G instruction
-            break;
-        case SUB_G:
-            // Code for SUB_G instruction
-            break;
-        case SUBC_G:
-            // Code for SUBC_G instruction
-            break;
+        case ADD_G:  ADD_SUB(argument[4], argument[3], argument[2], 0);     break;
+        case ADDC_G: ADD_SUB(argument[4], argument[3], argument[2], PSW.c); break;
+        case SUB_G:  ADD_SUB(argument[4], argument[3], argument[2], 0);     break;
+        case SUBC_G: ADD_SUB(argument[4], argument[3], argument[2], PSW.c); break;
         case DADD_G:
             // Code for DADD_G instruction
             break;
@@ -136,7 +121,7 @@ void execute(unsigned short argument[]){
     - SETPRI
     - SVC
     - SETCC
-    -CLRCC
+    - CLRCC
     ******************************************/
         case MOV_G:
             // Code for MOV_G instruction
@@ -183,17 +168,14 @@ void execute(unsigned short argument[]){
     - ST
     ******************************************/
     case LD_G:
-      /* Code for LD_G instruction */
       switch(argument[1]){
-        case 0:
-          /* Unmodified Register [R] */
+        case 0: /* Unmodified Register [R] */          
           if(argument[2]) // if byte instruction
             regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
           else            // if word instruction
             regFile[REG][argument[4]].word = memory.word[regFile[REG][argument[3]].word >> 1];
         break; /* [R] */
-        case 1:
-          /* Post Increment [R+] */
+        case 1: /* Post Increment [R+] */          
           if(argument[2]){ // if byte instruction
             regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
             Rx(argument[3]).word++; 
@@ -202,8 +184,7 @@ void execute(unsigned short argument[]){
             Rx(argument[3]).word = Rx(argument[3]).word + 2;
           }
         break; /* [R+] */
-        case 2:
-          /* Post Decrement [R-] */
+        case 2: /* Post Decrement [R-] */          
           if(argument[2]){ // if byte instruction
             regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
             Rx(argument[3]).word--; 
@@ -212,8 +193,7 @@ void execute(unsigned short argument[]){
             Rx(argument[3]).word = Rx(argument[3]).word - 2;
           } /* [R-] */
         break;
-        case 5:
-          /* Pre Increment [+R] */
+        case 5: /* Pre Increment [+R] */          
           if(argument[2]){ // if byte instruction
             Rx(argument[3]).word++; 
             regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
@@ -276,10 +256,7 @@ void execute(unsigned short argument[]){
         default:
             // Code for handling unknown instruction
             break;
-    }
-
-
-
+  }
 }
 
 void printArithmetic(char* mnemonic, unsigned char RC_Flag, unsigned char WB_Flag, unsigned short source, unsigned short desination){

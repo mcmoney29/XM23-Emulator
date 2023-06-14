@@ -3,6 +3,7 @@
 
 #include "emulator.h"
 #include "decode.h"
+#include "execute.h"
 
 /* Main CPU Functions */
 void tick();    

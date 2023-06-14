@@ -1,5 +1,5 @@
 /*
-  Computer Architecture Emulator v.0.4.0
+  Computer Architecture Emulator v.0.4.2
   Copyright McMoney Engineering LTD. 
   June 12, 2023
   - Create test programs for V & V
@@ -19,9 +19,13 @@ word_byte regFile REG_SIZE = {
 mem memory[MEM_SIZE];           // declare memory
 unsigned short MDR, MAR, IR;    // declare Mem Data Reg, Mem Address Reg, and Instruction Register
 int cpu_time = 0;               // declare cpu clock
+program* baseProgram;           // Program Structure to use as base for list of loaded programs
+PSW_Bits* PSW;
+
+void printOptions();
 
 int main(){
-  program* baseProgram = malloc(sizeof(program));     // Create base program for stack
+  baseProgram = malloc(sizeof(program));     // Create base program for stack
 
   //unsigned char PSW;              // Control Register -> |-|-|-|-|V|N|Z|C|
   int programCount = 0;
@@ -32,13 +36,13 @@ int main(){
   char programName[MAX_FILE_NAME_LENGTH];
   unsigned short programStartingLocation;
 
+  
+
   /* Main Loop */
   while(toupper(selection) != '\0'){
 
-    /* Print Options */
-    printf("\n");
-    if(baseProgram->next != NULL) printf("[R] Run Program  ");
-    printf("[L] Load File  [M] Print Memory Range  [F] Print Register File  [W] Write to Memory  [Q] Quit -> ");
+    /* Prompt User for Action */
+    printOptions();
     scanf("%c", &selection); getchar(); printf("\n");
 
     /* Option Switch Statement */
@@ -76,4 +80,10 @@ int main(){
     }
   }
   return 0;
+}
+
+void printOptions(){
+  printf("\n");
+  if(baseProgram->next != NULL) printf("[R] Run Program  ");
+  printf("[L] Load File  [M] Print Memory Range  [F] Print Register File  [W] Write to Memory  [Q] Quit ");
 }
