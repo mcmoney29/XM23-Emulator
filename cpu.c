@@ -2,7 +2,7 @@
 
 extern mem memory;
 extern int cpu_time;
-extern PSW_Bits PSW;
+extern PSW_Bits* PSW;
 
 /* Tick */
 void tick(){
@@ -40,7 +40,7 @@ void execute(unsigned short argument[]){
     /******************************************
     - BL
     *****************************************/
-    case BL_G: execute_BL(argument); break;
+    case BL_G: PC.word += argument[1];
     /******************************************
     - BEQ
     - BNE
@@ -51,25 +51,17 @@ void execute(unsigned short argument[]){
     - BLT
     - BRA
     ******************************************/
-    case BEQ_G: case BNE_G: case BC_G:
-            // Code for BC_G instruction
-            break;
-        case BNC_G:
-            // Code for BNC_G instruction
-            break;
-        case BN_G:
-            // Code for BN_G instruction
-            break;
-        case BGE_G:
-            // Code for BGE_G instruction
-            break;
-        case BLT_G:
-            // Code for BLT_G instruction
-            break;
-        case BRA_G:
-            // Code for BRA_G instruction
-            break;
+    case BEQ_G: PSW->z == 1 ? PC.word += argument[1] : 0; break;   // (PSW->z)
+    case BNE_G: PSW->z == 0 ? PC.word += argument[1] : 0; break;   // !(PSW->z)
+    case BC_G:  PSW->c == 1 ? PC.word += argument[1] : 0; break;
+    case BNC_G: PSW->c == 0 ? PC.word += argument[1] : 0; break;
+    case BN_G:  PSW->n == 1 ? PC.word += argument[1] : 0; break;
+    case BGE_G: (PSW->n ^ PSW->v) == 0 ? PC.word += argument[1] : 0; break;
+    case BLT_G: (PSW->n ^ PSW->v) == 1 ? PC.word += argument[1] : 0; break;
+    case BRA_G: PC.word += argument[1]; break;
     /******************************************
+    Arithmetic Instructions
+    Arguments: #1 = REG/CON  #2 = Word/Byte  #3 = Source  #4 = Destination
     - ADD
     - ADDC
     - SUB   -> Need to fix ADD_SUB() to take value in not register # so we can send in
@@ -81,29 +73,18 @@ void execute(unsigned short argument[]){
     - BIT
     - BIC
     - BIS
+    
     ******************************************/
-        case ADD_G:  ADD_SUB(argument[4], argument[3], argument[2], 0);     break;
-        case ADDC_G: ADD_SUB(argument[4], argument[3], argument[2], PSW.c); break;
-        case SUB_G:  ADD_SUB(argument[4], argument[3], argument[2], 0);     break;
-        case SUBC_G: ADD_SUB(argument[4], argument[3], argument[2], PSW.c); break;
-        case DADD_G:
-            // Code for DADD_G instruction
-            break;
-        case CMP_G:
-            // Code for CMP_G instruction
-            break;
-        case XOR_G:
-            // Code for XOR_G instruction
-            break;
-        case AND_G:
-            // Code for AND_G instruction
-            break;
-        case OR_G:
-            // Code for OR_G instruction
-            break;
-        case BIT_G:
-            // Code for BIT_G instruction
-            break;
+        case ADD_G:  ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], 0);      break;
+        case ADDC_G: ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], PSW->c); break;
+        case SUB_G:  ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], 0);      break;
+        case SUBC_G: ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], PSW->c); break;
+        case DADD_G: DADD_Func(argument[4],regFile[argument[1]][argument[3]], argument[2]);        break;
+        case CMP_G:  CMP_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+        case XOR_G:  XOR_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+        case AND_G:  AND_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+        case OR_G:   OR_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);         break;
+        case BIT_G:  BIT_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
         case BIC_G:
             // Code for BIC_G instruction
             break;

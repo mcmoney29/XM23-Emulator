@@ -11,7 +11,7 @@
 #include "cpu.h"
 
 /* globals */
-word_byte regFile REG_SIZE = {
+word_byte regFile REG_SIZE = {  // regFile[S/C][R#]
   {0, 0, 0, 0, 0, 0, 0, 0},     // Register Values
   {0, 1, 2, 4, 8, 16, 32, -1}   // Constant Values
 };
@@ -26,8 +26,8 @@ void printOptions();
 
 int main(){
   baseProgram = malloc(sizeof(program));     // Create base program for stack
+  PSW = malloc(sizeof(PSW_Bits));
 
-  //unsigned char PSW;              // Control Register -> |-|-|-|-|V|N|Z|C|
   int programCount = 0;
   char selection = 1;
   unsigned short temp, temp2;
@@ -36,10 +36,20 @@ int main(){
   char programName[MAX_FILE_NAME_LENGTH];
   unsigned short programStartingLocation;
 
-  
+  Rx(0).word = 0x0100;
+  Rx(1).word = 0x0007;
+
+  // CMP_Func(0, Rx(1), WORD);
+  // XOR_Func(0, Rx(1), WORD);
+  // AND_Func(0, Rx(1), WORD);
+  // OR_Func(0, Rx(1), WORD);
+  // BIT_Func(0, Rx(1), WORD);
+
+  printf("R0 = %04X\nR1 = %04X\n\n", Rx(0).word, Rx(1).word);
+  printf("PSW.C = %X\nPSW.N = %X\nPSW.V = %X\nPSW.Z = %X\n", PSW->c, PSW->n, PSW->v, PSW->z);
 
   /* Main Loop */
-  while(toupper(selection) != '\0'){
+  while(/*toupper(selection) != '\0'*/0){
 
     /* Prompt User for Action */
     printOptions();

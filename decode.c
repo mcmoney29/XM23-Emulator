@@ -1,6 +1,7 @@
-/*
-Decode Tree Outline Index
+#include "decode.h"
 
+/*********************
+Decode Tree Index
 -> BL
 -> BEQ - BRA
 -> ADD - ST
@@ -14,9 +15,7 @@ Decode Tree Outline Index
 -> MOVL - MOVH
 -> LDR
 -> STR
-*/
-
-#include "decode.h"
+*********************/
 
 void decode_BL(unsigned short argument[]){
   argument[0] = BL_G;
@@ -120,7 +119,7 @@ void decode_MOV_to_SXT(unsigned short argument[]){
 
 void decode_LD_to_ST(unsigned short argument[], unsigned char LD_ST_Flag){
   argument[0] = LD_ST_Flag;
-  argument[1] = PDI(IR);    // Pre/Post Decrement Increment
+  argument[1] = PDI(IR);    // Pre/Post, Decrement, Increment
   argument[2] = WB(IR);     // Word/Byte
   argument[3] = SRC(IR);    // Source Register
   argument[4] = DST(IR);    // Destination Register
@@ -129,6 +128,6 @@ void decode_LD_to_ST(unsigned short argument[], unsigned char LD_ST_Flag){
 void decode_CEX( unsigned short argument[]){
   argument[0] = CEX_G;
   argument[1] = COND(IR);   // Condition
-  argument[2] = SRC(IR);    // True (Register ?)
-  argument[3] = DST(IR);    // False (Register ?)
+  argument[2] = SRC(IR);    // True (Register)
+  argument[3] = DST(IR);    // False (Register)
 }

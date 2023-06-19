@@ -7,8 +7,19 @@ v. 0.4.1 (June 12, 2023)
   -> Instruction Count has been removed, deemed unecessary
 
 v. 0.4.2 (June 14, 2023)
-- Created execute.c and execute.handling
+- Created execute.c and execute.h
 - Created execute logic for instructions BL to BRA
 - Started instructions for ADD to SUBC
   -> Only ADDs are working, need to change function to accept values rather than
      register numbers such that 1's compliments can be sent in, as well as constants
+
+v. 0.4.3 (Current Version)
+- Finished implementation of ADD_SUB()
+- Added DADD_Func()
+- Added BCD to word_byte and word_byte to BCD
+  -> BUG: BCD_NUM.word and nib array do not share memory locations.
+- Added CMP_Func()
+- Worked out PSW issue of not being able to update global PSW
+- Added XOR through BIT functions
+- Exection loop in main.c has been disabled for test statements
+  -> Non-permantent solution

@@ -84,3 +84,19 @@ void writeToMemory(){
     printf("Error - unknown command, expected word or byte\n");
   }      
 }
+
+/* BCD to WORD_BYTE */
+word_byte BCD_to_WORDBYTE(BCD_NUM BCD){
+  word_byte result;
+  result.word = BCD.word;
+  return result;
+}
+
+BCD_NUM WORDBYTE_to_BCD(word_byte WORDBYTE){
+  BCD_NUM result;
+  for(int i = 0; i < 4; i++){
+    result.nib[i].nib = (WORDBYTE.word >> 4*i) & 0xF;
+  }
+  result.word = WORDBYTE.word;
+  return result;
+}
