@@ -3,21 +3,6 @@
 
 #include "emulator.h"
 
-
-
-/* Execute Functions (Legacy ?)
-void execute_BL(unsigned short[]);
-void execute_BEQ_to_BRA(unsigned short[]);
-void execute_ADD_to_ST(unsigned short[]);
-  void execute_ADD_to_BIS(unsigned short[]);
-  void execute_MOV_to_SXT(unsigned short[]);
-    void execute_SRA_to_SXT(unsigned short[]);
-  void execute_CEX( unsigned short[]);
-  void execute_LD_to_ST(unsigned short[], unsigned char);
-void execute_MOVL_to_MOVH(unsigned short[]);
-void execute_LDR(unsigned short[]);
-void execute_STR(unsigned short[]);*/
-
 /* New Execute Functions */
 
 void ADD_SUB(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag, unsigned CARRY);
@@ -27,6 +12,17 @@ void XOR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void AND_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void OR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void BIT_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
+void BIS_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
+void BIC_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
+void SWAP_Func(unsigned DST, unsigned SRC);
+void MOV_Func(unsigned DST, unsigned SRC, unsigned WORD_BYTE_Flag); // remove
+void SRA_Func(unsigned DST, unsigned WORD_BYTE_Flag);
+void RRC_Func(unsigned DST, unsigned WORD_BYTE_Flag);
+void COMP_Func(unsigned DST, unsigned WORD_BYTE_Flag);
+void SWPB_Func(unsigned DST);
+void SXT_Func(unsigned DST);
+void LD_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag);
+void ST_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag);
 
 /* Update PSW Function */
 void update_psw(unsigned short, unsigned short, unsigned short, unsigned short);

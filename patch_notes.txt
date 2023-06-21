@@ -13,7 +13,7 @@ v. 0.4.2 (June 14, 2023)
   -> Only ADDs are working, need to change function to accept values rather than
      register numbers such that 1's compliments can be sent in, as well as constants
 
-v. 0.4.3 (Current Version)
+v. 0.4.3 (June 18, 2023)
 - Finished implementation of ADD_SUB()
 - Added DADD_Func()
 - Added BCD to word_byte and word_byte to BCD
@@ -22,4 +22,8 @@ v. 0.4.3 (Current Version)
 - Worked out PSW issue of not being able to update global PSW
 - Added XOR through BIT functions
 - Exection loop in main.c has been disabled for test statements
-  -> Non-permantent solution
+  -> Non-permantent edit
+
+v. 0.4.4 (June 21, 2023)
+- Added remaining execution functions 
+- Reenabled main execution loop

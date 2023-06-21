@@ -96,11 +96,11 @@ void executeRecord(char buffer[], unsigned short* pgmCnt, char* programName){
   switch(type){
   case 0:
     /* Save Program Name */
-    for(int i = 0; data[i] >= 32 && data[i] <= 126; i++){
+    for(int i = 0; data[i] >= 32 && data[i] <= 126; i++){ // loop while printable
       programName[i] = data[i];
+      programName[i+1] = '\0';
       //printf("Set programName[%d](%c - %d), to data[%d](%c - %d)\n", i, programName[i], programName[i], i, data[i], data[i]);
     }
-    programName[i] = '\0';
     break;
   case 1:
     /* Save Data to Memory */

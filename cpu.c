@@ -20,7 +20,6 @@ void fetch() {
 }
 
 void decode(){
-  printf("Decoding %04X", IR);
   unsigned short argument[MAX_OPERANDS];
 
   switch((IR >> 13) & 0x07){
@@ -75,23 +74,20 @@ void execute(unsigned short argument[]){
     - BIS
     
     ******************************************/
-        case ADD_G:  ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], 0);      break;
-        case ADDC_G: ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], PSW->c); break;
-        case SUB_G:  ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], 0);      break;
-        case SUBC_G: ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], PSW->c); break;
-        case DADD_G: DADD_Func(argument[4],regFile[argument[1]][argument[3]], argument[2]);        break;
-        case CMP_G:  CMP_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
-        case XOR_G:  XOR_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
-        case AND_G:  AND_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
-        case OR_G:   OR_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);         break;
-        case BIT_G:  BIT_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
-        case BIC_G:
-            // Code for BIC_G instruction
-            break;
-        case BIS_G:
-            // Code for BIS_G instruction
-            break;
+    case ADD_G:  ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], 0);      break;
+    case ADDC_G: ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], PSW->c); break;
+    case SUB_G:  ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], 0);      break;
+    case SUBC_G: ADD_SUB(argument[4], regFile[argument[1]][argument[3]], argument[2], PSW->c); break;
+    case DADD_G: DADD_Func(argument[4],regFile[argument[1]][argument[3]], argument[2]);        break;
+    case CMP_G:  CMP_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+    case XOR_G:  XOR_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+    case AND_G:  AND_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+    case OR_G:   OR_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);         break;
+    case BIT_G:  BIT_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+    case BIC_G:  BIC_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
+    case BIS_G:  BIS_Func(argument[4], regFile[argument[1]][argument[3]], argument[2]);        break;
     /******************************************
+    Arguments: #1 = Word/Byte  #2 = Source  #3 = Destination
     - MOV
     - SWAP
     - SRA
@@ -99,106 +95,31 @@ void execute(unsigned short argument[]){
     - COMP
     - SWPB
     - SXT
-    - SETPRI
-    - SVC
-    - SETCC
-    - CLRCC
+    - SETPRI -> X
+    - SVC -> X
+    - SETCC -> X
+    - CLRCC -> X
+    - CEX -> X
     ******************************************/
-        case MOV_G:
-            // Code for MOV_G instruction
-            break;
-        case SWAP_G:
-            // Code for SWAP_G instruction
-            break;
-        case SRA_G:
-            // Code for SRA_G instruction
-            break;
-        case RRC_G:
-            // Code for RRC_G instruction
-            break;
-        case COMP_G:
-            // Code for COMP_G instruction
-            break;
-        case SWPB_G:
-            // Code for SWPB_G instruction
-            break;
-        case SXT_G:
-            // Code for SXT_G instruction
-            break;
-        case SETPRI_G:
-            // Code for SETPRI_G instruction
-            break;
-        case SVC_G:
-            // Code for SVC_G instruction
-            break;
-        case SETCC_G:
-            // Code for SETCC_G instruction
-            break;
-        case CLRCC_G:
-            // Code for CLRCC_G instruction
-            break;
+    case MOV_G: MOV_Func(argument[3], argument[2], argument[1]); break;
+    case SWAP_G: SWAP_Func(argument[3], argument[2]); break;
+    case SRA_G: SRA_Func(argument[3], argument[1]); break;
+    case RRC_G: RRC_Func(argument[3], argument[1]); break;
+    case COMP_G: COMP_Func(argument[3], argument[1]); break;
+    case SWPB_G: SWPB_Func(argument[3]); break;
+    case SXT_G: SXT_Func(argument[3]); break;
+    // case SETPRI_G: break;
+    // case SVC_G: break;
+    //case SETCC_G: break;
+    // case CLRCC_G: break;
+    // case CEX_G: break;
     /******************************************
-    - CEX
-    ******************************************/
-        case CEX_G:
-            // Code for CEX_G instruction
-            break;
-
-    /******************************************
+    Arguments: #1 = Pre-Post/Dec/Inc  #2 = Word/Byte  #3 = Source  #4 = Destination
     - LD -> working as of lab 3
     - ST
     ******************************************/
-    case LD_G:
-      switch(argument[1]){
-        case 0: /* Unmodified Register [R] */          
-          if(argument[2]) // if byte instruction
-            regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
-          else            // if word instruction
-            regFile[REG][argument[4]].word = memory.word[regFile[REG][argument[3]].word >> 1];
-        break; /* [R] */
-        case 1: /* Post Increment [R+] */          
-          if(argument[2]){ // if byte instruction
-            regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
-            Rx(argument[3]).word++; 
-          } else{          // if word instruction
-            regFile[REG][argument[4]].word = memory.word[regFile[REG][argument[3]].word >> 1];
-            Rx(argument[3]).word = Rx(argument[3]).word + 2;
-          }
-        break; /* [R+] */
-        case 2: /* Post Decrement [R-] */          
-          if(argument[2]){ // if byte instruction
-            regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
-            Rx(argument[3]).word--; 
-          } else{          // if word instruction
-            regFile[REG][argument[4]].word = memory.word[regFile[REG][argument[3]].word >> 1];
-            Rx(argument[3]).word = Rx(argument[3]).word - 2;
-          } /* [R-] */
-        break;
-        case 5: /* Pre Increment [+R] */          
-          if(argument[2]){ // if byte instruction
-            Rx(argument[3]).word++; 
-            regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
-          } else{          // if word instruction
-            Rx(argument[3]).word = Rx(argument[3]).word + 2;
-            regFile[REG][argument[4]].word = memory.word[regFile[REG][argument[3]].word >> 1];
-          }
-        break;
-        case 6:
-          /* Pre Decrement [-R] */
-          if(argument[2]){ // if byte instruction
-            Rx(argument[3]).word--; 
-            regFile[REG][argument[4]].byte[0] = memory.byte[regFile[REG][argument[3]].word];
-          } else{          // if word instruction
-            Rx(argument[3]).word = Rx(argument[3]).word - 2;
-            regFile[REG][argument[4]].word = memory.word[regFile[REG][argument[3]].word >> 1];
-          }
-        break;
-      }
-    break;
-        case ST_G:
-            // Code for ST_G instruction
-            break;
-
+    case LD_G:  LD_Func(argument[4], argument[3], argument[1], argument[2]); break;
+    case ST_G:  ST_Func(argument[4], argument[3], argument[1], argument[2]); break;
     /******************************************
     - MOVL  ->  working as of lab 3
     - MOVLZ ->          "
@@ -219,24 +140,22 @@ void execute(unsigned short argument[]){
     case MOVH_G:
       regFile[REG][argument[2]].byte[1] = argument[1];
     break;
-
     /******************************************
     - LDR
     - STR
     ******************************************/
     case LDR_G:
-      /* Code for LDR_G instruction */
       if(argument[2])   // BYTE
         Rx(argument[4]).byte[0] = memory.byte[Rx(argument[3]).byte[0]]; 
       else              // WORD
         Rx(argument[4]).word = memory.word[Rx(argument[3]).word>>1];
     break;
-        case STR_G:
-            // Code for STR_G instruction
-            break;
-        default:
-            // Code for handling unknown instruction
-            break;
+    case STR_G:
+      if(argument[2])   // BYTE
+        memory.byte[Rx(argument[3]).byte[0]] = Rx(argument[4]).byte[0]; 
+      else              // WORD
+        memory.word[Rx(argument[3]).word>>1] = Rx(argument[4]).word;
+    break;
   }
 }
 
@@ -265,7 +184,7 @@ void runProgram(program* program, int programNumber, word_byte* prgmCntr){
   }
   prgmCntr->word = program->startingAddress;
   printf("Running program %c%s%c, PC = %04X\n", 34, program->name, 34, program->startingAddress);
-  while(toupper(selection) != -1){
+  while((toupper(selection) != -1) || (IR == 0x0000)){
     /* Get User Command */
     printf("\n[C] Continue  [P] Change PC  [M] Print Memory Range  [F] Print Register File  [Q] Terminate Program -> ");
     scanf("%c", &selection); getchar(); printf("\n");
