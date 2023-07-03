@@ -1,0 +1,59 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test02.asm
+Time of assembly: Fri 30 Jun 2023 00:06:05 
+  1	    	     	; Test #02
+  2	    	     	; -> Conditional Branches (2)
+  3	    	     	; ECED 3403
+  4	    	     	; 30 June 2023
+  5	    	     	;
+  6	    	     	num1	equ 	#EF00		; def 'num1' to #FF17
+  7	    	     	num2	equ 	#1000		; def 'num2' to #1000
+  8	    	     	num3	equ	#0200		; def 'num3' to #0200
+  9	    	     	;
+ 10	    	     		org 	#1100		; Sets the assembler orgin to #1100
+ 11	    	     	Less	
+ 12	1100	7F78		movh	num1,R0		; R0.high <- #EF
+ 13	1102	7811		movh	num3,R1		; R1.high <- #02
+ 14	1104	4008		add	R1,R0		; R0 <- R0 + R1
+ 15	1106	3B81		blt	Finish
+ 16	    	     	;
+ 17	    	     	Negative
+ 18	1108	4208		sub	R1,R0
+ 19	110A	37FE		bge	Negative
+ 20	110C	33F9		bn	Less
+ 21	    	     	;
+ 22	    	     		org	#1000		; Sets the assembler origin to #1000
+ 23	    	     	Start				
+ 24	1000	7000		movls	num1,R0		; R0.high <- #FF
+ 25	1002	7881		movh	num2,R1		; R1.high <- #10
+ 26	    	     	Carry
+ 27	1004	4008		add	R1,R0		; Add R1 into R0
+ 28	1006	2BFE		bc	Carry		; Branch to true if equal
+ 29	1008	2C7F		bnc	Negative	; Branch to false if false
+ 30	    	     	;
+ 31	    	     	Finish
+ 32	    	     		end	Start		; End of program, set PC to address of Start
+
+Successful completion of assembly - 2P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Carry                              	REL	1004	4100	PRI
+Start                              	REL	1000	4096	PRI
+Negative                           	REL	1108	4360	PRI
+Finish                             	REL	100A	4106	PRI
+Less                               	REL	1100	4352	PRI
+num3                               	CON	0200	512	PRI
+num2                               	CON	1000	4096	PRI
+num1                               	CON	EF00	-4352	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test02.xme
+

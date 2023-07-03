@@ -19,11 +19,11 @@ Decode Tree Index
 
 void decode_BL(unsigned short argument[]){
   argument[0] = BL_G;
-  argument[1] = offset(IR, 13);   // Offset (migos)
+  argument[1] = (IR & (1 << 12)) ? (IR | 0xE000) << 1 : (IR & 0x1FFF) << 1;   // Offset (migos)
 }
 
 void decode_BEQ_to_BRA(unsigned short argument[]){
-  switch((IR >> 10) & 0x03){
+  switch((IR >> 10) & 0x07){
     case BEQ: argument[0] = BEQ_G;  break;
     case BNE: argument[0] = BNE_G;  break;
     case BC:  argument[0] = BC_G;   break;
@@ -33,7 +33,7 @@ void decode_BEQ_to_BRA(unsigned short argument[]){
     case BLT: argument[0] = BLT_G;  break;
     case BRA: argument[0] = BRA_G;  break;
   }
-  argument[1] = offset(IR, 9);    // Offset (migos)
+  argument[1] = offset(IR, 9) << 1;    // Offset (migos)
 }
 
 void decode_ADD_to_ST(unsigned short argument[]){
@@ -41,7 +41,8 @@ void decode_ADD_to_ST(unsigned short argument[]){
     case 0: case 1: case 2: decode_ADD_to_BIS(argument); break;
     case 3: decode_MOV_to_SXT(argument);                 break;
     case 4: decode_CEX(argument);                        break;
-    case 6: case 7: decode_LD_to_ST(argument, LD_G);     break;
+    case 6: decode_LD_to_ST(argument, LD_G);     break;
+    case 7: decode_LD_to_ST(argument, ST_G);     break;
   } 
 }
 

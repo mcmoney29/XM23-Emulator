@@ -5,56 +5,55 @@ extern mem memory;
 
 /* Update PSW */
 void update_psw(unsigned short src, unsigned short dst, unsigned short res, unsigned short wb){
-  unsigned short mss, msd, msr;   /* Most significant src, dst, and res bits */
+  unsigned short mss, msd, msr;   // Most significant src, dst, and res bits 
   
   /* PSW Logic Tables */
   unsigned carry[2][2][2] = { 0, 0, 1, 0, 1, 0, 1, 1 };
   unsigned overflow[2][2][2] = {0, 1, 0, 0, 0, 0, 1, 0};
 
-  if (wb == 0){
-    /* Word */
+  if (wb == 0){ /* Word */
     mss = Bn(15, src);
     msd = Bn(15, dst);
     msr = Bn(15, res);
-  } else{
-    /* Byte */
+  } else{ /* Byte */
     mss = Bn(7, src);
     msd = Bn(7, dst);
     msr = Bn(7, res);
     res &= 0x00FF;	  /* Mask high byte for zero check */
   }
-  PSW->c = carry[mss][msd][msr]; 	     /* Set Carry Bit */
-  //printf("Set PSW.c = %d\n", carry[mss][msd][msr]);
-  PSW->z = (res == 0);	               /* Set Zero Bit */
-  //printf("Set PSW.z = %d\n", (res == 0));
-  PSW->n = (msr == 1);	               /* Set Negative Bit */
-  //printf("Set PSW.n = %d\n", (msr == 1));
-  PSW->v = overflow[mss][msd][msr]; 	 /* Set oVerflow Bit */
-  //printf("Set PSW.v = %d\n", overflow[mss][msd][msr]);
+  PSW->c = carry[mss][msd][msr]; 	     // Set Carry Bit
+  PSW->z = (res == 0);	               // Set Zero Bit
+  PSW->n = (msr == 1);	               // Set Negative Bit
+  PSW->v = overflow[mss][msd][msr]; 	 // Set oVerflow Bit
 }
 
 /* ADD, ADDC, SUB, SUBC */
-void ADD_SUB(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag, unsigned CARRY){
+void ADD_SUB(unsigned DST, unsigned short SRC, unsigned WORD_BYTE_Flag, unsigned CARRY){
   word_byte RES = Rx(DST);
-  if(WORD_BYTE_Flag)
-    RES.byte[0] = Rx(DST).byte[0] + SRC.byte[0] + CARRY;
-  else
-    RES.word = Rx(DST).word + SRC.word + CARRY;
-  update_psw(SRC.word, Rx(DST).word, RES.word, WORD_BYTE_Flag);
+  if(WORD_BYTE_Flag){
+    RES.byte[0] = Rx(DST).byte[0] + (SRC & 0xFF) + CARRY;
+    update_psw(SRC + CARRY & 0xFF, Rx(DST).word, RES.word, WORD_BYTE_Flag);
+  }
+  else{
+    RES.word = Rx(DST).word + SRC + CARRY;
+    update_psw(SRC + CARRY, Rx(DST).word, RES.word, WORD_BYTE_Flag);
+  }
   Rx(DST) = RES;
 }
 
 /* DADD */
 void DADD_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
-  unsigned char HALF_CARRY = 0;
-  BCD_NUM DST_BCD = WORDBYTE_to_BCD(Rx(DST));
-  BCD_NUM SRC_BCD = WORDBYTE_to_BCD(SRC);
+  unsigned char HALF_CARRY = 0, nibbles, res;
+  BCD_NUM DST_BCD = WORDBYTE_to_BCD(Rx(DST));     // Convert DST to BCD
+  BCD_NUM SRC_BCD = WORDBYTE_to_BCD(SRC);         // Convert SRC to BCD
   BCD_NUM result;
 
-  unsigned char res;
-  for(int i = 0; i < 4; i++){
+  nibbles = WORD_BYTE_Flag ? 2 : 4;   // Set nibbles based on WORD/BYTE flag
+
+  /* Calculate Decimal ADD */
+  for(int i = 0; i < nibbles; i++){
     res = DST_BCD.nib[i].nib + SRC_BCD.nib[i].nib + HALF_CARRY;
-    if(res > 10){
+    if(res >= 10){
       res -= 10;
       HALF_CARRY = 1;
     } else{
@@ -62,20 +61,12 @@ void DADD_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
     }
     result.nib[i].nib = res;
   }
-  Rx(DST).word = 0x0000;
-  for(int i = 0; i < 4; i++){
+
+  /* Save RST to DST.word */
+  Rx(DST).word = WORD_BYTE_Flag ? Rx(DST).word & 0xFF00 : 0;
+  for(int i = 0; i < nibbles; i++){
     Rx(DST).word += result.nib[i].nib << (4*i);
   } 
-  /*DADD_FUNC(D, S, Half Carry){
-  word_byte RES = Rx(DST);
-	RES.word = Rx(DST).word + Rx(SRC).word + HALF_CARRY;
-	if (RES.word > 9){
-		RES.word -= 10;
-		HALF_CARRY = 1;
-  }
-	else
-		HALF_CARRY = 0;
-*/
 }
 
 void CMP_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
@@ -86,14 +77,21 @@ void CMP_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
 
 void XOR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res;
-  res = WORD_BYTE_Flag ? (Rx(DST).byte[0] ^ SRC.byte[0]) : (Rx(DST).word ^ SRC.word);
-  update_psw(SRC.word, Rx(DST).word, res, WORD_BYTE_Flag);
-  Rx(DST).word |= res;
+  if(WORD_BYTE_Flag){
+    /* BYTE */
+    res = Rx(DST).byte[0] ^ SRC.byte[0];
+    update_psw(SRC.word, Rx(DST).word, res, BYTE);
+    Rx(DST).byte[0] = res & 0xFF;
+  } else{
+    /* WORD */
+    res = Rx(DST).word ^ SRC.word;
+    update_psw(SRC.word, Rx(DST).word, res, WORD);
+    Rx(DST).word = res;
+  }
 }
 
 void AND_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res;
-  //res = WORD_BYTE_Flag ? (Rx(DST).byte[0] & SRC.byte[0]) : (Rx(DST).word & SRC.word);
   if(WORD_BYTE_Flag){
     /* BYTE */
     res = Rx(DST).byte[0] & SRC.byte[0];
@@ -105,14 +103,21 @@ void AND_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
     update_psw(SRC.word, Rx(DST).word, res, WORD);
     Rx(DST).word = res;
   }
-  update_psw(SRC.word, Rx(DST).word, res, WORD_BYTE_Flag);
 }
 
 void OR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
-  unsigned short res;
-  res = WORD_BYTE_Flag ? (Rx(DST).byte[0] | SRC.byte[0]) : (Rx(DST).word | SRC.word);
-  update_psw(SRC.word, Rx(DST).word, res, WORD_BYTE_Flag);
-  Rx(DST).word |= res;
+  unsigned short res = Rx(DST).word;
+  if(WORD_BYTE_Flag){
+    /* BYTE */
+    res = Rx(DST).byte[0] | SRC.byte[0];
+    update_psw(SRC.word, Rx(DST).word, res, BYTE);
+    Rx(DST).byte[0] = res & 0xFF;
+  } else{
+    /* WORD */
+    res = Rx(DST).word | SRC.word;
+    update_psw(SRC.word, Rx(DST).word, res, WORD);
+    Rx(DST).word = res;
+  }
 }
 
 void BIT_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
@@ -123,14 +128,15 @@ void BIT_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
 
 void BIC_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res;
-  res = WORD_BYTE_Flag ? Rx(DST).byte[0] & (1 << ~SRC.byte[0]) : Rx(DST).word & (1 << ~SRC.word);
+  res = Rx(DST).word | ~(1<<(SRC.word));
   update_psw(SRC.word, Rx(DST).word, res, WORD_BYTE_Flag);
   Rx(DST).word = res;
 }
 
 void BIS_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res;
-  res = WORD_BYTE_Flag ? Rx(DST).byte[0] | (1 << SRC.byte[0]) : Rx(DST).word | (1 << SRC.word);
+  res = Rx(DST).word | (1 << (SRC.word));
+
   update_psw(SRC.word, Rx(DST).word, res, WORD_BYTE_Flag);
   Rx(DST).word = res;
 }

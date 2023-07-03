@@ -3,9 +3,8 @@
 
 #include "emulator.h"
 
-/* New Execute Functions */
-
-void ADD_SUB(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag, unsigned CARRY);
+/* Execute Functions */
+void ADD_SUB(unsigned DST, unsigned short SRC, unsigned WORD_BYTE_Flag, unsigned CARRY);
 void DADD_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void CMP_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void XOR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
@@ -15,7 +14,7 @@ void BIT_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void BIS_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void BIC_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag);
 void SWAP_Func(unsigned DST, unsigned SRC);
-void MOV_Func(unsigned DST, unsigned SRC, unsigned WORD_BYTE_Flag); // remove
+void MOV_Func(unsigned DST, unsigned SRC, unsigned WORD_BYTE_Flag);
 void SRA_Func(unsigned DST, unsigned WORD_BYTE_Flag);
 void RRC_Func(unsigned DST, unsigned WORD_BYTE_Flag);
 void COMP_Func(unsigned DST, unsigned WORD_BYTE_Flag);

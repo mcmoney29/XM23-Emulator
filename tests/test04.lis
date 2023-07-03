@@ -1,0 +1,70 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test04.asm
+Time of assembly: Sun 2 Jul 2023 21:08:17 
+  1	    	     	; Test #04
+  2	    	     	; -> Bit-Wise Operations
+  3	    	     	; ECED 3403
+  4	    	     	; 2 July 2023
+  5	    	     	;
+  6	    	     	num1	equ 	#CCCC		; def 'num1' to #CCCC
+  7	    	     	num2	equ 	#3333		; def 'num1' to #3333
+  8	    	     	base	equ	#FFF0		; def 'base' to #FFF0 (high bit should be ignored by movlz)
+  9	    	     	;
+ 10	    	     		org	#1000		; Sets the assembler origin to #1000
+ 11	    	     	Start				
+ 12	1000	6660		movl	num1,R0		; R0.low <- #33
+ 13	1002	7E60		movh	num1,R0		; R0.high <- #33
+ 14	1004	6199		movl	num2,R1		; R1.low <- #CC
+ 15	1006	7999		movh	num2,R1		; R1.high <- #CC
+ 16	1008	6F82		movlz	base,R2		; R2 = #00F0
+ 17	100A	5C10		st	R2,R0		; mem[#00F0] = #CCCC
+ 18	    	     	;
+ 19	100C	4608		xor	R1,R0		; XOR
+ 20	100E	5810		ld	R2,R0		; reset R0 to #CCCC
+ 21	    	     	;
+ 22	1010	4708		and 	R1,R0		; AND
+ 23	1012	5810		ld	R2,R0		; reset R0 to #CCCC
+ 24	    	     	;
+ 25	1014	4808		or	R1,R0;		; OR
+ 26	1016	5810		ld	R2,R0;		; reset R0 to #CCCC
+ 27	    	     	;
+ 28	1018	4908		bit	R1,R0;		; BIT
+ 29	101A	5810		ld	R2,R0;		; reset R0 to #CCCC
+ 30	    	     	;
+ 31	101C	4A08		bic	R1,R0;		; BIC
+ 32	101E	5810		ld	R2,R0;		; reset R0 to #CCCC
+ 33	    	     	;
+ 34	1020	4B08		bis	R1,R0;		; BIS
+ 35	1022	5810		ld 	R2,R0;		; reset R0 to #CCCC
+ 36	    	     	;
+ 37	1024	4C88		swap	R1,R0;		; swap R0 and R1
+ 38	1026	4C81		swap 	R0,R1;		; swap back
+ 39	    	     	;
+ 40	1028	4D00		sra	R0;		; Shift Right
+ 41	102A	5810		ld	R2,R0;		; reset R0 to #CCCC
+ 42	    	     	;
+ 43	102C	4008		add 	R1,R0;		; R0 = R0 + R1 (=#FFFF)
+ 44	102E	4008		add	R1,R0;		; add again to set carry bit
+ 45	1030	4D09		rrc	R1;		; Rotate right through carry
+ 46	    	     	;
+ 47	    	     		end	Start		; End of program, set PC to address of Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Start                              	REL	1000	4096	PRI
+base                               	CON	FFF0	-16	PRI
+num2                               	CON	3333	13107	PRI
+num1                               	CON	CCCC	-13108	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test04.xme
+

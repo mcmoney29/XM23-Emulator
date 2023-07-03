@@ -1,0 +1,42 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test05.asm
+Time of assembly: Mon 3 Jul 2023 00:02:42 
+  1	    	     	; Test #05
+  2	    	     	; -> DADD, COMP, SXT
+  3	    	     	; ECED 3403
+  4	    	     	; 2 July 2023
+  5	    	     	
+  6	    	     	num1	equ 	#2498		; def 'num1' to #2498
+  7	    	     	num2	equ 	#0905		; def 'num2' to #0905
+  8	    	     	;
+  9	    	     		org	#1000		; Sets the assembler origin to #1000
+ 10	    	     	Start				
+ 11	1000	64C0		movl	num1,R0		; R0.low <- #98
+ 12	1002	7920		movh	num1,R0		; R0.high <- #24
+ 13	1004	6029		movl	num2,R1		; R1.low <- #05
+ 14	1006	7849		movh	num2,R1		; R1.high <- #09
+ 15	    	     	;
+ 16	1008	4408		dadd	R1,R0		; R0 = $2498 + $0905 = $3403
+ 17	100A	4248		sub.b	R1,R0		; R0 = #24(03 - 05 = FE)
+ 18	100C	4D20		sxt	R0		; R0 = #FFFE
+ 19	100E	4D10		comp 	R0		; R0 = ~R0 = #0001
+ 20	    	     		end	Start		; End of program, set PC to address of Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Start                              	REL	1000	4096	PRI
+num2                               	CON	0905	2309	PRI
+num1                               	CON	2498	9368	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test05.xme
+

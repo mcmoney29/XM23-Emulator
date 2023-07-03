@@ -1,0 +1,58 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test01.asm
+Time of assembly: Thu 29 Jun 2023 22:06:25 
+  1	    	     	; Test #01
+  2	    	     	; -> Conditional Branches
+  3	    	     	; ECED 3403
+  4	    	     	; 21 June 2023
+  5	    	     	;
+  6	    	     	num1	equ 	#1738		; def 'num1' to #1738
+  7	    	     	num2	equ 	#2023		; def 'num1' to #1738
+  8	    	     	;
+  9	    	     		org	#1100		; Set the assembler origin to #1100
+ 10	    	     	true				; true = address #2000
+ 11	    	     	;
+ 12	1100	6118		movl	num2,R0		; Set R0 to #2023
+ 13	1102	7900		movh	num2,R0		;
+ 14	1104	3F80		bra	Compare		; Return
+ 15	    	     	;
+ 16	    	     	;
+ 17	    	     	false
+ 18	1106	61C0		movl	num1,R0		; Set R0 to #1738
+ 19	1108	78B8		movh	num1,R0		;
+ 20	110A	3F7D		bra	Compare		; Return
+ 21	    	     	;
+ 22	    	     	;
+ 23	    	     		org	#1000		; Sets the assembler origin to #1000
+ 24	    	     	Start				
+ 25	1000	61C0		movl	num1,R0		; R0.low <- #38
+ 26	1002	78B8		movh	num1,R0		; R0.high <- #17
+ 27	1004	4C01		mov	R0,R1		; Copy #1738 into R1
+ 28	    	     	Compare
+ 29	1006	4501		cmp	R0,R1		; Compare R1 and R0
+ 30	1008	207B		beq	true		; Branch to true if equal
+ 31	100A	247D		bne	false		; Branch to false if false
+ 32	    	     	;
+ 33	    	     		end	Start		; End of program, set PC to address of Start
+
+Successful completion of assembly - 2P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Start                              	REL	1000	4096	PRI
+false                              	REL	1106	4358	PRI
+Compare                            	REL	1006	4102	PRI
+true                               	REL	1100	4352	PRI
+num2                               	CON	2023	8227	PRI
+num1                               	CON	1738	5944	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test01.xme
+

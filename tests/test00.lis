@@ -1,0 +1,49 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test00.asm
+Time of assembly: Wed 21 Jun 2023 23:24:15 
+  1	    	     	; Test #00
+  2	    	     	; -> Branch with link
+  3	    	     	; ECED 3403
+  4	    	     	; 21 June 2023
+  5	    	     	;
+  6	    	     	num	equ 	#11
+  7	    	     	;
+  8	    	     		org	#2000		   	; Set the assembler origin to #2000
+  9	    	     	;
+ 10	    	     	subr				    
+ 11	    	     	;
+ 12	2000	4D18		swpb	R0		    	; Swap register 0
+ 13	2002	4C2F		mov	R5,R7		    	; Return to #1004
+ 14	    	     	;
+ 15	    	     		org	#1000		    	; Sets the assembler origin to #1000
+ 16	    	     	;
+ 17	    	     	Start
+ 18	    	     	; 
+ 19	    	     	; Load num into R0
+ 20	    	     	;
+ 21	1000	6088		movl	num,R0			; R0.LSByte <- #11
+ 22	    	     	;
+ 23	1002	07FE		bl	subr	    		; Branch to subr
+ 24	    	     	;
+ 25	1004	4D18		swpb 	R0		    	; Swap register 0 again
+ 26	    	     	;
+ 27	    	     		end	Start		    	; End of program, set PC to address of Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Start                              	REL	1000	4096	PRI
+subr                               	REL	2000	8192	PRI
+num                                	CON	0011	17	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test00.xme
+

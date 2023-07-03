@@ -1,8 +1,7 @@
 /*
-  Computer Architecture Emulator v.0.4.4
+  Computer Architecture Emulator v.1.0.0
   Copyright McMoney Engineering LTD. 
-  June 20, 2023
-  - Create test programs for V & V
+  July 1, 2023
 */
 
 /* Include Header Files */
@@ -10,79 +9,49 @@
 #include "emulator.h"
 #include "cpu.h"
 
-/* globals */
-word_byte regFile REG_SIZE = {  // regFile[S/C][R#]
-  {0, 0, 0, 0, 0, 0, 0, 0},     // Register Values
-  {0, 1, 2, 4, 8, 16, 32, -1}   // Constant Values
+extern void sigint_hdlr();        // CTRL-C Signal Handler
+
+/* Declare Global Variables */
+word_byte regFile REG_SIZE = {    // regFile[S/C][R#]
+  {0, 0, 0, 0, 0, 0, 0, 0},       // Register Values
+  {0, 1, 2, 4, 8, 16, 32, -1}     // Constant Values
 };
 
-mem memory[MEM_SIZE];           // declare memory
-unsigned short MDR, MAR, IR;    // declare Mem Data Reg, Mem Address Reg, and Instruction Register
-int cpu_time = 0;               // declare cpu clock
-program* baseProgram;           // Program Structure to use as base for list of loaded programs
+mem memory[MEM_SIZE];             // declare memory
+unsigned short MDR, MAR, IR;      // declare Mem Data Reg, Mem Address Reg, and Instruction Register
+int cpu_time = 0;                 // declare cpu clock
+program* baseProgram;             // Program Structure to use as base for list of loaded programs
 PSW_Bits* PSW;
-
-void printOptions();
+volatile sig_atomic_t ctrl_c_fnd; // Boolean that indicates whether ^C detected
+unsigned short breakPoint;
 
 int main(){
+  /* Initalize Variables */
   baseProgram = malloc(sizeof(program));     // Create base program for stack
-  PSW = malloc(sizeof(PSW_Bits));
+  PSW = malloc(sizeof(PSW_Bits));            // Allocate Memory for PSW.
+  char loopFlag = TRUE, selection[256];
 
-  int programCount = 0;
-  char selection = 1;
-  unsigned short temp, temp2;
-  unsigned char temp_byte;
-  char fileName[MAX_FILE_NAME_LENGTH];
-  char programName[MAX_FILE_NAME_LENGTH];
-  unsigned short programStartingLocation;
+  /* Initalize Control-C Software */
+  ctrl_c_fnd = 0;
+  signal(SIGINT, sigint_hdlr);
 
   /* Main Loop */
-  while(toupper(selection) != '\0'){
-
-    /* Prompt User for Action */
-    printOptions();
-    scanf("%c", &selection); getchar();
-    printf("\n");
-
-    /* Option Switch Statement */
-    switch(toupper(selection)){
-
-      /* Run a Program */
-      case 'R':
-        if(baseProgram->next == NULL){    /* Check a program has been loaded */
-          printf("No programs have been loaded to memory.\n");
-          break;
-        }
-
-        /* Promt user to Select Program */
-        printf("Select Program to Run:\n");                 // Option Message
-        printProgramOptions(baseProgram->next);             // Print list of loaded programs
-        scanf("%c", &selection); getchar(); printf("\n");   // Get program selection
-
-        /* Run Program */
-        runProgram(baseProgram->next, selection-48, &PC);   // Set PC to program's entry point
-      break; // end of run
-
-      /* Load a Program */
-      case 'L':
-        printf("Enter File Name: ");                                // Prompt user for file name
-        scanf("%s", fileName); getchar();                           // Read file name from terminal  
-        if(load(fileName, &programStartingLocation, programName))   // Load file with that name
-          pushProgram(baseProgram, createProgram(programName, programStartingLocation));
-      break;
-      
-      case 'M': memoryDump(); break;        // Memory Dump
-      case 'Q': selection = '\0'; break;    // Quit
-      case 'F': printRegisterFile(); break; // Print Register File
-      case 'W': writeToMemory(); break;     // Write to Memory
-      default: printf("Unexpected input. Please try again.\n"); break;  // Unexpected Input
+  while(loopFlag){
+    seletionPrompt(selection);
+    for(int i = 0; i < strlen(selection); i++){
+      switch(toupper(selection[i])){
+        case 'R': runProgram(); break;                                    // Run Program
+        case 'L': loadFile(); break;                                      // Load File
+        case 'M': mainMemoryDump(); break;                                    // Memory Dump
+        case 'Q': loopFlag = 0; break;                                    // Quit
+        case 'F': printRegisterFile(); break;                             // Print Register File
+        case 'W': writeToMemory(); break;                                 // Write to Memory
+        case 'T': printf("CPU Time = %d\n", cpu_time); break;             // Print CPU Time
+        case 'P': printf("[C|%d] [N|%d] [V|%d] [Z|%d]\n", PSW->c, PSW->n, PSW->v, PSW->z); break; // Print PSW
+        case 'B': manageBreakpoint(&breakPoint);  break;
+        default: printf("Unexpected input. Please try again.\n"); break;  // Unexpected Input
+      }
     }
   }
   return 0;
-}
-
-void printOptions(){
-  printf("\n");
-  if(baseProgram->next != NULL) printf("[R] Run Program  ");
-  printf("[L] Load File  [M] Print Memory Range  [F] Print Register File  [W] Write to Memory  [Q] Quit ");
 }

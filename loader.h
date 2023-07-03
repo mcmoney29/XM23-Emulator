@@ -4,13 +4,12 @@
 #include "emulator.h"
 
 /* Main Function */
-int load(char*, unsigned short*, char*);
+int loadFile();
 
 /* Basic Functions */
 unsigned char getType(char[], unsigned char*);
 unsigned char getLength(char[], unsigned char*);  
 unsigned short getAddress(char[], unsigned char*);  
-
 void executeRecord(char[], unsigned short*, char*);
 
 /* Program Functions */

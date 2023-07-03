@@ -8,15 +8,6 @@
 /* Main CPU Functions */
 void tick();    
   void fetch();
-  void decode();
+  void decode(unsigned short* arg);
   void execute(unsigned short argument[]);
-
-/* Test Functions */
-void printArithmetic(char*, unsigned char, unsigned char, unsigned short, unsigned short);
-void printBranch(char*, short, unsigned short, unsigned short);
-
-/* Emulation Functions */
-void runProgram(program*, int, word_byte*);
-
-// PSW(dst.word, src.word, res.word, W/B)
 #endif

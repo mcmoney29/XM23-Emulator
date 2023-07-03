@@ -1,0 +1,49 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test06.asm
+Time of assembly: Mon 3 Jul 2023 01:22:53 
+  1	    	     	; Test #06
+  2	    	     	; -> Byte Instructions
+  3	    	     	; ECED 3403
+  4	    	     	; 2 July 2023
+  5	    	     	
+  6	    	     	num1	equ 	#1721		; def 'num1' to #1721
+  7	    	     	num2	equ 	#6532		; def 'num2' to #6532
+  8	    	     	;
+  9	    	     		org	#1000		; Sets the assembler origin to #1000
+ 10	    	     	Start				
+ 11	1000	6108		movl	num1,R0		; R0.low <- #21
+ 12	1002	78B8		movh	num1,R0		; R0.high <- #17
+ 13	1004	6191		movl	num2,R1		; R1.low <- #32
+ 14	1006	7B29		movh	num2,R1		; R1.high <- #65
+ 15	    	     	;
+ 16	1008	4448		dadd.b	R1,R0
+ 17	100A	4648		xor.b 	R1,R0
+ 18	100C	4748		and.b	R1,R0
+ 19	100E	4048		add.b	R1,R0
+ 20	1010	4848		or.b	R1,R0
+ 21	1012	4948		bit.b	R1,R0
+ 22	1014	4A48		bic.b	R1,R0
+ 23	1016	4C48		mov.b	R1,R0
+ 24	1018	4D41		sra.b	R1
+ 25	101A	4D49		rrc.b	R1
+ 26	    	     	;
+ 27	    	     		end 	Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Start                              	REL	1000	4096	PRI
+num2                               	CON	6532	25906	PRI
+num1                               	CON	1721	5921	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test06.xme
+

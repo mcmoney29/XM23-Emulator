@@ -1,0 +1,47 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test05.asm
+Time of assembly: Sat 24 Jun 2023 23:01:32 
+  1	    	     	; Test #03
+  2	    	     	; -> Add bytes with carry
+  3	    	     	; ECED 3403
+  4	    	     	; 24 June 2023
+  5	    	     	;
+  6	    	     	num1	equ 	#4280		; def 'num1' to #4280
+  7	    	     	num2	equ 	#17A0		; def 'num2' to #17A0
+  8	    	     	;
+  9	    	     		org	#1000		; Sets the assembler origin to #1000
+ 10	    	     	Start
+ 11	1000	6400		movl	num1,R0		; Set R0 = #4280
+ 12	1002	7A10		movh	num1,R0		; 
+ 13	1004	6501		movl	num2,R1		; Set R1 = #17A0
+ 14	1006	78B9		movh	num2,R1		;
+ 15	1008	4048		add.b	R1,R0		; Add #A0 to #80 (= #120)
+ 16	    	     					; R0.low <= #20
+ 17	    	     					; PSW.c is set
+ 18	100A	4D18		swpb	R0		; Swap bytes in R0
+ 19	100C	4D19		swpb	R1		; Swap bytes in R1
+ 20	100E	4148		addc.b	R1,R0		; Add bytes with carry
+ 21	1010	4D18		swpb	R0		; Swap bytes in R0 back
+ 22	1012	4D19		swpb	R1		; Swap bytes in R1 back
+ 23	    	     	;
+ 24	    	     		end	Start		; End of program, set PC to address of Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Loop                               	REL	1008	4104	PRI
+Start                              	REL	1000	4096	PRI
+num2                               	CON	17A0	6048	PRI
+num1                               	CON	4280	17024	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\test05.xme
+
