@@ -1,3 +1,9 @@
+/* 
+Thursday, July 20, 2023 - execute.h
+- Declares functions that assist in the decoding process done by decode()
+- Declares the update psw function
+*/
+
 #ifndef EXECUTE_H
 #define EXECUTE_H
 

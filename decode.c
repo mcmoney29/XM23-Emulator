@@ -1,21 +1,11 @@
-#include "decode.h"
+/*
+Thursday, July 20, 2023 - decode.c
+- Defines functions that assist in the decoding process done by decode()
+- All functions take in the argument array and modify the array, replacing 
+  the previous instruction's arguments with the decoded data.
+*/
 
-/*********************
-Decode Tree Index
--> BL
--> BEQ - BRA
--> ADD - ST
-  '-> ADD - BIS
-  '-> MOV - SXT
-    '-> MOV
-    '-> SWAP
-    '-> SRA - SXT
-  '-> CEX
-  '-> LD - ST
--> MOVL - MOVH
--> LDR
--> STR
-*********************/
+#include "decode.h"
 
 void decode_BL(unsigned short argument[]){
   argument[0] = BL_G;

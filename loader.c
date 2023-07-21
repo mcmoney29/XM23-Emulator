@@ -1,14 +1,20 @@
+/*
+Thursday, July 20, 2023 - loader.c
+- Defines functions that allow for the emulator to read s-records and
+  write them into memory
+*/
+
 #include "loader.h"
 
-extern program* baseProgram;
+extern int loadFlag;
 
 int loadFile(){
   /* Initialize Automatics */
   char* record[MAX_RECORDS];                     // Array of strings (S-Records)
-  char fptr[MAX_RECORDS], programName[MAX_RECORDS];              // File Name
+  char fptr[MAX_RECORDS], programName[MAX_RECORDS];             // File Name
   unsigned short i = 0, pgmCnt;                  // Record index
   FILE* infile;                                  // File pointer
-  char temp[TEST_PATH_LEN] = "tests/test";       // Test Directory 
+  char test_fptr[TEST_PATH_LEN] = "tests/test";       // Test Directory 
 
   /* Prompt User for File */
   printf("Enter File Name: ");                    // Prompt user for file name
@@ -16,10 +22,10 @@ int loadFile(){
   
   /* Check for Test File and Open File */
   if(strlen(fptr) == 3 && toupper(fptr[0]) == 'T'){
-    strcat(temp, &fptr[1]); strcat(temp, ".xme");
-    infile = fopen(temp, "r");                    // Open test file specified
+    strcat(test_fptr, &fptr[1]); strcat(test_fptr, ".xme"); // Append '.xme' extension to file pointer
+    infile = fopen(test_fptr, "r");                         // Open test file specified
   } else{
-    infile = fopen(fptr, "r");                    // Open file passed
+    infile = fopen(fptr, "r");                              // Open file passed
   }
 
   /* Confirm file has been opened */
@@ -38,13 +44,14 @@ int loadFile(){
     }
   }
 
+  /* Reads in Records */
   i = 0;                                                                      // Reset the Counter
   while(fscanf(infile, "%s", record[i]) != EOF && i < MAX_RECORDS) i++;       // Read Strings
   fclose(infile);                                                             // Close File
   for(int n = 0; n < i; n++) executeRecord(record[n], &pgmCnt, programName);  // Execute Records
   for(i = 0; i < MAX_RECORDS; i++) free(record[i]);                           // Free the allocated memory
-  pushProgram(baseProgram, createProgram(programName, pgmCnt));               // Push Program
   printf("\nLoaded %s\n", programName);                                       // Print Confirmation Message
+  loadFlag = 1;
   return 1;
 }
 
@@ -121,28 +128,8 @@ void executeRecord(char buffer[], unsigned short* pgmCnt, char* programName){
     break;
     case 9:
       /* Set Program Counter */
-      *pgmCnt = address;
+      PC.word = address;
     break;
   }
   return;
-}
-
-program* createProgram(char* name, unsigned short address){
-  program* newProgram = malloc(sizeof(program));
-  int i = 0;
-  while(name[i] != '\0'){
-    newProgram->name[i] = name[i];
-    i++;
-  }
-  newProgram->name[i] = '\0';
-  newProgram->startingAddress = address;
-  newProgram->next = NULL;
-  return newProgram;
-}
-
-/* Push Program */
-void pushProgram(program* base, program* newProgram){
-  while(base->next != NULL)   // Get to top
-    base = base->next;
-  base->next = newProgram;    // Push Program to Top
 }

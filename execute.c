@@ -1,3 +1,10 @@
+/*
+Thursday, July 20, 2023 - execute.c
+- Defines functions that assist in the decoding process done by decode()
+- Defines the update psw function
+- Functions are passed values from the argument array
+*/
+
 #include "execute.h"
 
 extern PSW_Bits* PSW;

@@ -1,12 +1,19 @@
+/*
+Thursday, July 20, 2023 - emulator.c
+- Function definitions for debugging commands (and bus)
+*/
+
 #include "emulator.h"
 
 /* External Globals */
-extern program* baseProgram;
 extern PSW_Bits* PSW;
-extern int cpu_time;
+//extern cacheline* cache[CACHE_SIZE];  
+extern int cpu_time, stepFlag, loadFlag;
+extern char cacheMode;
 extern void tick();
 extern unsigned short breakPoint;       
 extern volatile sig_atomic_t ctrl_c_fnd;
+
 
 /* Bus Function */
 extern mem memory;
@@ -25,112 +32,42 @@ void bus(unsigned short MAR, unsigned short* MDR, int readORwrite, int wordORbyt
  }
 }
 
-/* Main Function that runs Programs */
+/* Run Program Function */
 void runProgram(){
-  /* Check a program has been loaded */
-  if(baseProgram->next == NULL){
-    printf("No programs have been loaded to memory.\n");
+  int runTime, startTime = cpu_time;
+
+	/* Check that a program has been loaded */
+  if(!loadFlag){
+    printf("No program has been loaded!\n");
     return;
   }
 
-  /* Initalize Variables */
-  int programNumber, tickSpeed;
-  unsigned short bound1, bound2;      // Bounds for memoryDump();
-  char command[MAX_CMND_LENGTH];
-  program* current = baseProgram -> next;
-  ctrl_c_fnd = 0;
-
-  /* Promt user to Select Program */
-  printf("Select Program to Run:\n");                      // Option Message
-  printProgramOptions();                                   // Print list of loaded programs
-  scanf("%d", &programNumber); getchar(); printf("\n");    // Get program selection
-
-  /* Get to Program */
-  for(int i; i < programNumber; i++) current = current->next;
-  
-  /* Set PC to Program's Starting Address */
-  PC.word = current->startingAddress;
-  printf("Running program %c%s%c, PC = %04X\n\n", 34, current->name, 34, PC.word);
-
-  /* Prompt for Clock Speed */
-  printf("Enter CPU speed in seconds: ");
-  scanf("%d", &tickSpeed); getchar();
-
-  /* Init Commands */
-  if(tickSpeed) {
-    printDebugCommands();
-    printf("-> ");
-    scanf("%s", command); getchar();
-    printf("\n");
-
-    /* Prompt for Memory Range */
-    for(int i = 0; i < strlen(command) && i < MAX_CMND_LENGTH; i++){
-      if(toupper(command[i]) == 'M'){
-        printf("Enter upper and lower bounds in hex -> ");
-        scanf("%4hx %4hx", &bound1, &bound2); getchar();
-      }
-    }
-  } else {
-    printProgramCommands();
+	/* Complete CPU Cycles based on Step Mode */
+  if(stepFlag){
+		/* Single Step */
+    tick();
+  } else{
+    /* Continious */
+    while(!ctrl_c_fnd && PC.word != breakPoint) tick();
   }
 
-  /* Execution Loop */
-  while(!ctrl_c_fnd && command[0] != -1 && PC.word != breakPoint){
-    if(!tickSpeed){
-      /* Get User Command */
-      printf("-> ");
-      scanf("%s", command); getchar();
-      printf("\n");
-    } else {
-      tick();
-      sleep(tickSpeed);
-      if(strlen(command)) printf("\n");
-    }
-      /* Execute User Command */
-      for(int i = 0; i < strlen(command); i++){
-        switch(toupper(command[i])){
-          case 'P': updatePC();  break;
-          case 'C': tick();  break;
-          case 'M': memoryDump(&bound1, &bound2, tickSpeed);  break;
-          case 'Q': command[0] = -1;  break;
-          case 'F': printRegisterFile();  break;
-          case 'T': printf("CPU Time = %d\n", cpu_time);  break;
-          case 'S': printf("[C|%d] [N|%d] [V|%d] [Z|%d]\n", PSW->c, PSW->n, PSW->v, PSW->z);  break;
-          default: 
-            printf("Unexpected command, please try again.\n"); 
-            printProgramCommands();
-          break;
-        }
-      } 
-  }
-  ctrl_c_fnd = 0;
-}
-
-/* Prints List of Programs */
-void printProgramOptions(){
-  int i = 0;
-  program* current;
-  current = baseProgram->next;
-  for(;;){
-    printf("[%d] %s ", i, current->name);
-    if(current->next == NULL){
-      printf("\n-> ");          // No more programs, print arrow and return
-      return;
-    } else{
-      current = current->next; // Goto next program
-    }
-    i++;
-  }
+	/* Calc and Print Process Information */
+  runTime = cpu_time - startTime;
+  printf("Ran for %d CPU clock cycle", runTime);
+  if(runTime > 1) printf("s");
+  printf(", PC = %04X\n", PC.word);
+  ctrl_c_fnd = 0;		// reset ctrl_c flag
 }
 
 /* Memory Dump */
-void memoryDump(unsigned short * bound1, unsigned short* bound2, int tickSpeed){
+void memoryDump(unsigned short * bound1, unsigned short* bound2, int boundCount){
   unsigned short ubound, lbound;
-  if(!tickSpeed){
-    printf("Enter upper and lower bounds in hex -> ");
-    scanf("%4hX %4hX", bound1, bound2); getchar();
-  }
-
+  
+	if(!boundCount){
+  	printf("Enter upper and lower bounds in hex -> ");
+  	scanf("%4hX %4hX", bound1, bound2); getchar();
+	}
+  
   /* Set Lower and Upper Bounds */
   if(*bound1 > *bound2){
     lbound = *bound2;
@@ -147,13 +84,32 @@ void memoryDump(unsigned short * bound1, unsigned short* bound2, int tickSpeed){
       printf("%02X ", memory.byte[lbound]);
       lbound++;
     }
+		printf("\n");
   }
-  printf("\n");
+  
 }
 
-void mainMemoryDump(){
+void mainMemoryDump(char* command){
   unsigned short bound1, bound2;
-  memoryDump(&bound1, &bound2, 0);
+  int length = strlen(command);
+
+	switch(length){
+		case 1: // len = 1(M)
+			memoryDump(&bound1, &bound2, 0);
+		break;
+		case 6: // len = 1(M) + 1(Space) + 4(Bound)
+			sscanf(&command[2], "%4hx", &bound1);
+			memoryDump(&bound1, &bound1, 1);
+		break;
+		case 11: // len = 1(M) + 1(Space) + 4(Bound) + 1(Space) + 4(Bound)
+			sscanf(&command[2], "%4hx %4hx", &bound1, &bound2);
+			memoryDump(&bound1, &bound2, 2);
+		break;
+		default:
+		printf("error\n");
+		break;
+	}
+
 }
 
 /* BCD to WORD_BYTE */
@@ -163,6 +119,7 @@ word_byte BCD_to_WORDBYTE(BCD_NUM BCD){
   return result;
 }
 
+/* WORD_BYTE to BCD */
 BCD_NUM WORDBYTE_to_BCD(word_byte WORDBYTE){
   BCD_NUM result;
   for(int i = 0; i < 4; i++){
@@ -173,19 +130,25 @@ BCD_NUM WORDBYTE_to_BCD(word_byte WORDBYTE){
 }
 
 /* Command Options Print Functions */
-void printProgramCommands(){
-  printf("[C] CPU Tick\n");
+void printCommands(){
+  printf("[R] Run Program\n");
+  printf("[L] Load File\n");
   printf("[P] Update PC\n");
-  printf("[W] Write to Memory\n");
-  printDebugCommands();
+	printf("[B] Manage Breakpoint\n");
+	printf("[M] Write to Memory\n");
+  printf("[S] Switch Step Mode\n");
+  printf("[C] Change Cache Modes\n");
+	printf("[D] Print Debugging Commands\n");
+  //printDebugCommands();
+  printf("[?] Display Command Options\n");
   printf("[Q] Quit\n");
 }
-
 void printDebugCommands(){
-  printf("[M] Print Memory Range\n");
-  printf("[F] Print Register File\n");
-  printf("[S] Print Status Word\n");
-  printf("[T] Print CPU Time\n");
+  printf("[1] Memory Dump\n");
+  printf("[2] Print Register File\n");
+  printf("[3] Print Status Word\n");
+  printf("[4] Print CPU Time\n");
+  printf("[5] Print Cache\n");
 }
 
 /* Update PC*/
@@ -227,25 +190,58 @@ void sigint_hdlr(){
   signal(SIGINT, sigint_hdlr);
 }
 
-void seletionPrompt(char *selection){
+/* Prompt the user for a command */
+void commandPrompt(char * command){
   printf("\n");
-  if(baseProgram->next != NULL) printf("[R] Run Program\n");
-  printf("[L] Load File\n");
-  printf("[M] Print Memory Range\n");
-  printf("[F] Print Register File\n");
-  printf("[P] Print PSW\n");
-  printf("[W] Write to Memory\n");
-  printf("[T] Print CPU Time\n");
-  printf("[B] Manage Breakpoint\n");
-  printf("[Q] Quit\n");
   printf("-> ");
-  scanf("%s", selection); getchar();
+
+	/* Scan New Command */
+	fgets(command, MAX_CMND_LENGTH, stdin);
+	int len = strlen(command);
+  if(len > 0 && command[len - 1] == '\n'){
+		command[len - 1] = '\0';	// replace newline char with null char
+	}
+	
+	// scanf("%s", command); getchar();
+
   printf("\n");
 }
 
+/* Manage Breakpoint */
 void manageBreakpoint(unsigned short* breakPoint){
   unsigned short temp = *breakPoint;
   printf("Enter new breakpoint: ");
   scanf("%4hx", breakPoint); getchar();
   printf("Breakpoint: %04X -> %04X\n", temp, *breakPoint);
+}
+
+
+
+/* Switches CPU Step Modes (Continious/Single Step)*/
+void switchStepMode(){
+  stepFlag = ~stepFlag;
+  if(stepFlag){
+    printf("Now in Single-Step Mode\n");
+  } else{
+    printf("Now in Continious Mode\n");
+  }
+}
+
+/* Prompt user for Cache Mode and Change Global */
+void switchCacheMode(){
+	printf("Select Cache Mode:\n");
+	printf("[1] - Accociative Mapping\n");
+	printf("[2] - Direct Mapping\n");
+	printf("[3] - Hybrid Mapping\n-> ");
+
+	cacheMode = 0;
+	while(cacheMode < '1' || cacheMode > '3'){
+		scanf("%c", &cacheMode); getchar();
+		switch(cacheMode){
+			case '1': printf("Now using Accoicative Mapping\n"); break;
+			case '2': printf("Now using Direct Mapping\n"); break;
+			case '3': printf("Now using Hybrid Mapping\n"); break;
+			default: printf("Unknown input, please try again\n"); break;
+		}
+	}
 }

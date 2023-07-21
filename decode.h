@@ -1,10 +1,14 @@
+/*
+Thursday, July 20, 2023 - decode.h
+- Declares functions that assist in the decoding process done by decode()
+*/
+
 #ifndef DECODE_H
 #define DECODE_H
 #include "emulator.h"
 
-/*
-Decode Tree Outline Index
-
+/*********************
+Decode Tree Index
 -> BL
 -> BEQ - BRA
 -> ADD - ST
@@ -18,7 +22,7 @@ Decode Tree Outline Index
 -> MOVL - MOVH
 -> LDR
 -> STR
-*/
+*********************/
 
 void decode_BL(unsigned short[]);
 void decode_BEQ_to_BRA(unsigned short[]);

@@ -1,8 +1,14 @@
+/*
+Thursday, July 20, 2023 - cpu.c
+- Function definitions for CPU actions
+*/
+
 #include "cpu.h"
 
 extern mem memory;
 extern int cpu_time;
 extern PSW_Bits* PSW;
+extern cacheline* cache[CACHE_SIZE];
 
 void tick(){
   unsigned short arg[MAX_OPERANDS];
@@ -12,8 +18,8 @@ void tick(){
 }
 
 void fetch() {
-  bus(PC.word, &IR, READ, WORD);
-  PC.word = PC.word + 2;
+  IR = cache[sendCacheLine(PC.word)]->data->word;
+  PC.word += 2;
   cpu_time++;
 }
 
