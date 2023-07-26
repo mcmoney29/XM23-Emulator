@@ -1,6 +1,11 @@
+/*
+Wednesday, July 26, 2023 - cache.c
+- Defines cache functions and print function
+- Defines cachelines and cache structures
+*/
 #include "cache.h"
 
-extern cacheline* cache[CACHE_SIZE];  // bring in external cachline
+extern cacheline* cache[CACHE_SIZE];  // bring in external cache line
 extern mem memory[MEM_SIZE];
 extern int cacheMode, cpu_time;
 
@@ -20,7 +25,7 @@ cacheline* createCacheline(unsigned short address, unsigned short data){
 
 /* Sends a Cache Line 
 - If HIT: ages younger cache lines, resets age, and returns line #
-- If MISS: addes new address to the cache, ages all other lines, and returns line #
+- If MISS: adds new address to the cache, ages all other lines, and returns line #
 */
 int sendCacheLine(unsigned short address){
   /* Check for hit/miss */
@@ -48,12 +53,12 @@ int sendCacheLine(unsigned short address){
 
   switch(cacheMode){
     case ASC:
-      /* Ascoitative */
+      /* Associative */
       /* Check for Vacant Cache Line */
       
       for(int i = 0; i < CACHE_SIZE; i++){
         if(cache[i] == NULL){
-          ageCache(CACHE_SIZE);   // Age all cachelines
+          ageCache(CACHE_SIZE);   // Age all cache lines
           cache[i] = new;         // Save new line to cache
           return i; /* exit - miss, vacant cache */
         }
@@ -61,15 +66,14 @@ int sendCacheLine(unsigned short address){
 
       /* Full Cache */
       int oldestIndex = removeOldest();
-      ageCache(CACHE_SIZE);       // Age all cachelines
+      ageCache(CACHE_SIZE);       // Age all cache lines
       cache[oldestIndex] = new;   // Save new line to cache
       return oldestIndex; /* exit - miss, full cache */
     break;
     case DIR:
       /* Direct */
-      printf("Direct Chache Mode\n");
+      //printf("Direct Cache Mode\n");
       cache[LSN(address)] = new;
-      printf("71\n");
       return LSN(address);
     break;
     case HYB:
@@ -98,7 +102,7 @@ int searchCache(unsigned short address){
   //printf("searching cache for %04X using mode #%c\n", address, cacheMode);
   switch(cacheMode){
     case ASC:
-      /* Asscoitative */
+      /* Associative */
       //printf("searching ASC\n");
       for(int i = 0; i < CACHE_SIZE; i++){
         if(cache[i] != NULL){
@@ -114,13 +118,13 @@ int searchCache(unsigned short address){
     break;
     case DIR:
       /* Direct */
-      if(cache[LSN(address)] != NULL){
-        if(cache[LSN(address)]->address == address) return LSN(address);  // if address in location with = LSN then return hit
+      if(cache[LSN(address)] != NULL && cache[LSN(address)]->address == address){
+        return LSN(address);  // if address in location with = LSN then return hit
       }
       else return -1; // miss
     break;
     case HYB:
-      /* Hyrbrid */
+      /* Hybrid */
       return -1;
     break;
   }
@@ -140,9 +144,9 @@ int removeOldest(){
       }
     }
   }
-  /*if(cache[oldestIndex]->dirtyBit){
-    mem[cache[oldestIndex]->address] = cache[oldestIndex];
-  }*/
+  if(cache[oldestIndex]->dirtyBit){
+    bus(cache[oldestIndex]->address, &cache[oldestIndex]->data->word, WRITE, WORD);
+  }
   free(cache[oldestIndex]);   // Free oldest cache lines #moved here from sendCacheLine()
   printf("Removed cache line #%d\n", oldestIndex);
   return oldestIndex;

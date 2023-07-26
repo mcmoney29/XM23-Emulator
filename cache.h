@@ -1,3 +1,8 @@
+/*
+Wednesday, July 26, 2023 - cache.h
+- Declares cache functions and print function
+- Declares cachelines and cache structures
+*/
 #ifndef CACHE_H
 #define CACHE_H
 
@@ -5,12 +10,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "emulator.h"
-
-// /* Register File Structure */
-// typedef union word_byte{
-//   unsigned short word;
-//   unsigned char byte[2];
-// } word_byte;
 
 typedef struct cacheline{
   unsigned char age;            // Line Age  -> 1 Byte

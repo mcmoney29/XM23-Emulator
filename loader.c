@@ -1,5 +1,5 @@
 /*
-Thursday, July 20, 2023 - loader.c
+Wednesday, July 26, 2023 - loader.c
 - Defines functions that allow for the emulator to read s-records and
   write them into memory
 */
@@ -10,11 +10,11 @@ extern int loadFlag;
 
 int loadFile(){
   /* Initialize Automatics */
-  char* record[MAX_RECORDS];                     // Array of strings (S-Records)
-  char fptr[MAX_RECORDS], programName[MAX_RECORDS];             // File Name
-  unsigned short i = 0, pgmCnt;                  // Record index
-  FILE* infile;                                  // File pointer
-  char test_fptr[TEST_PATH_LEN] = "tests/test";       // Test Directory 
+  char* record[MAX_RECORDS];                        // Array of strings (S-Records)
+  char fptr[MAX_RECORDS], programName[MAX_RECORDS]; // File Name
+  unsigned short i = 0, pgmCnt;                     // Record index
+  FILE* infile;                                     // File pointer
+  char test_fptr[TEST_PATH_LEN] = "tests/test";     // Test Directory 
 
   /* Prompt User for File */
   printf("Enter File Name: ");                    // Prompt user for file name
@@ -50,7 +50,7 @@ int loadFile(){
   fclose(infile);                                                             // Close File
   for(int n = 0; n < i; n++) executeRecord(record[n], &pgmCnt, programName);  // Execute Records
   for(i = 0; i < MAX_RECORDS; i++) free(record[i]);                           // Free the allocated memory
-  printf("\nLoaded %s\n", programName);                                       // Print Confirmation Message
+  printf("\nLoaded %s, PC = %04X\n", programName, PC.word);                   // Print Confirmation Message
   loadFlag = 1;
   return 1;
 }

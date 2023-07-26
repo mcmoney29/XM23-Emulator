@@ -1,7 +1,7 @@
 /*
-Thursday, July 20, 2023 - execute.c
+Wednesday, July 26, 2023 - execute.c
 - Defines functions that assist in the decoding process done by decode()
-- Defines the update psw function
+- Defines the update PSW function
 - Functions are passed values from the argument array
 */
 
@@ -15,7 +15,7 @@ void update_psw(unsigned short src, unsigned short dst, unsigned short res, unsi
   unsigned short mss, msd, msr;   // Most significant src, dst, and res bits 
   
   /* PSW Logic Tables */
-  unsigned carry[2][2][2] = { 0, 0, 1, 0, 1, 0, 1, 1 };
+  unsigned carry[2][2][2] = {0, 0, 1, 0, 1, 0, 1, 1};
   unsigned overflow[2][2][2] = {0, 1, 0, 0, 0, 0, 1, 0};
 
   if (wb == 0){ /* Word */

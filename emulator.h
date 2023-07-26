@@ -1,5 +1,5 @@
 /*
-Thursday, July 20, 2023 - emulator.h
+Wednesday, July 26, 2023 - emulator.h
 - Used as the main include file
   -> Has all library includes and is included in each other file
 - Has all macros, enums, and structures
@@ -13,7 +13,6 @@ Thursday, July 20, 2023 - emulator.h
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include <unistd.h>
 #include <math.h>
 #include <signal.h>
 //#include "cache.h"
@@ -26,7 +25,6 @@ Thursday, July 20, 2023 - emulator.h
 #define SP regFile[0][6]                  // Stack Pointer (R6)
 #define PC regFile[0][7]                  // Program Counter (R7)
 #define Rx(x) regFile[0][x]               // Register Array 
-// #define TICK_SPEED 0                      // pause between ticks in seconds
 #define COND(x) (x >> 6) & 0x0F
 #define DST(x) x & 0x07                   // Mask macro for destination bits (Bits 0, 1, 2) (also used for CEX-FALSE)
 #define SRC(x) (x >> 3) & 0x07            // Mask macro for source bits (Bits 3, 4, 5) (also used for CEX-TRUE)
@@ -61,7 +59,7 @@ enum WB_Flag {WORD, BYTE};
 enum RC_Flag {REG, CONST};
 enum TRUE_FALSE {FALSE, TRUE};
 enum LD_ST_Flag {LD, ST};
-enum cacheModes {ASC = 49, DIR, HYB};   // Asccoitative = '1', Direct = '2', Hybrid = '3'
+enum cacheModes {ASC = 49, DIR, HYB};   // Associative = '1', Direct = '2', Hybrid = '3'
 
 /* Instruction */
 enum Instructions {BL_G = 1, BEQ_G, BNE_G, BC_G, BNC_G, BN_G, BGE_G, BLT_G, BRA_G, ADD_G, ADDC_G, SUB_G, SUBC_G, DADD_G, CMP_G, XOR_G, AND_G, OR_G, BIT_G, BIC_G, BIS_G, MOV_G, SWAP_G, SRA_G, RRC_G, COMP_G, SWPB_G, SXT_G, SETPRI_G, SVC_G, SETCC_G, CLRCC_G, CEX_G, LD_G, ST_G, MOVL_G, MOVLZ_G, MOVLS_G, MOVH_G, LDR_G, STR_G};
@@ -109,7 +107,7 @@ typedef struct PSW_Bits{
   unsigned     prev: 3;      //          "
 } PSW_Bits;
 
-void bus(unsigned short, unsigned short*, int, int);
+void bus(unsigned short MAR, unsigned short* MDR, int readORwrite, int wordORbyte);
 
 extern unsigned short MDR, MAR, IR;    // declare Mem Data Reg, Mem Address Reg, and Instruction Reg
 extern word_byte regFile REG_SIZE;
@@ -128,7 +126,6 @@ void switchCacheMode();
 void printDebugCommands();
 void commandPrompt(char *selection);
 void manageBreakpoint(unsigned short* breakPoint);
-
 void switchStepMode();
 
 #endif /* EMULATOR_H */
