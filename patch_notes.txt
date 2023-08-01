@@ -13,7 +13,7 @@ v. 1.0.1 (July 20, 2023)
 - Created direct mapping option for cache
 - Added logic for memory dump command to send in bounds directly with the command 
   -> Add in for other commands in future versions
-- Reversed order of patch_notes.c
+- Reversed order of patch_notes.txt
 
 v. 1.0.0 (July 2, 2023)
 - Fixed bug with length always saving as 30
