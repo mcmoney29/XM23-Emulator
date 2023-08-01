@@ -1,9 +1,9 @@
 /*
-Wednesday, July 26, 2023 - emulator.h
+Tuesday, August 1, 2023 - emulator.h
 - Used as the main include file
   -> Has all library includes and is included in each other file
 - Has all macros, enums, and structures
-- Includes general debugging functions (and bus)
+- Includes general debugging functions
 */
 
 #ifndef EMULATOR_H
@@ -15,12 +15,10 @@ Wednesday, July 26, 2023 - emulator.h
 #include <stdlib.h>
 #include <math.h>
 #include <signal.h>
-//#include "cache.h"
-
-
 
 /* CPU */
-#define REG_SIZE [2][8]                   // Register Size [Number of Files][Registers per Files]
+#define REG_COUNT 8                       // Register Count
+#define REG_SIZE [2][REG_COUNT]           // Register Size [Number of Files][Register Count]
 #define LR regFile[0][5]                  // Link Register
 #define SP regFile[0][6]                  // Stack Pointer (R6)
 #define PC regFile[0][7]                  // Program Counter (R7)
@@ -36,9 +34,8 @@ Wednesday, July 26, 2023 - emulator.h
 #define relative_offset(x) ((x & (1 << 7)) ? (x >> 7 | 1 << 7) : (x >> 7 & 0x007F))
 #define Bn(n, x) (x >> n) & 0x01;
 
-
 /* Memory */
-#define MEM_SIZE 1 << 16  // Memory Size (1<<16 = 64 KiB)
+#define MEM_SIZE 1 << 16            // Memory Size (1<<16 = 64 KiB)
 
 /* Loader */
 //#define MPC 10                    // Max Programs Sent to the Emulator
@@ -53,15 +50,33 @@ Wednesday, July 26, 2023 - emulator.h
 #define CACHE_SIZE 16
 #define LSN(x) x & 0x000F
 
-/* Flags */
+/* State Flags */
 enum RW_Flag {READ, WRITE};
-enum WB_Flag {WORD, BYTE};
+enum WB_Flag {WORD_, BYTE_};
 enum RC_Flag {REG, CONST};
 enum TRUE_FALSE {FALSE, TRUE};
 enum LD_ST_Flag {LD, ST};
-enum cacheModes {ASC = 49, DIR, HYB};   // Associative = '1', Direct = '2', Hybrid = '3'
+enum cacheModes {ASC = 255, DIR = 0};   // Associative = '1', Direct = '2', Hybrid = '3'
+enum replPols {WB = 255, WT = 0};
+enum HIT_MISS {HIT, MISS};
 
-/* Instruction */
+/* Cache Bus States */
+enum cacheBusStates {
+  READ_HIT_ASC,
+  READ_HIT_DIR,
+  READ_MISS_ASC,
+  READ_MISS_DIR,
+  WRITE_HIT_ASC,
+  WRITE_HIT_DIR,
+  WRITE_MISS_ASC,
+  WRITE_MISS_DIR,
+  HIT_ASC = 0,
+  HIT_DIR,
+  MISS_ASC,
+  MISS_DIR
+};
+
+/* Instructions */
 enum Instructions {BL_G = 1, BEQ_G, BNE_G, BC_G, BNC_G, BN_G, BGE_G, BLT_G, BRA_G, ADD_G, ADDC_G, SUB_G, SUBC_G, DADD_G, CMP_G, XOR_G, AND_G, OR_G, BIT_G, BIC_G, BIS_G, MOV_G, SWAP_G, SRA_G, RRC_G, COMP_G, SWPB_G, SXT_G, SETPRI_G, SVC_G, SETCC_G, CLRCC_G, CEX_G, LD_G, ST_G, MOVL_G, MOVLZ_G, MOVLS_G, MOVH_G, LDR_G, STR_G};
 enum Instruction_Groups {BL, BEQ_to_BRA, ADD_to_BIS, MOV, SWAP, SRA_to_SXT, CEX, LD_to_ST, MOVL_to_MOVH, LDR, STR};
 enum Branch_Instructions {BEQ, BNE, BC, BNC, BN, BGE, BLT, BRA};
@@ -101,21 +116,18 @@ typedef struct PSW_Bits{
   unsigned        n: 1;      // Negative
   unsigned      slp: 3;      // SLeeP (unused in Assignment 1)
   unsigned        v: 1;      // oVerflow
-  unsigned  current: 3;      // Unused in assignment 1
-  unsigned    fault: 1;      //          "
-  unsigned reserved: 4;      //          "
-  unsigned     prev: 3;      //          "
+  unsigned  current: 3;      // Current Priority
+  unsigned    fault: 1;      // Fault
+  unsigned reserved: 4;      
+  unsigned     prev: 3;      // Previous Priority
 } PSW_Bits;
 
-void bus(unsigned short MAR, unsigned short* MDR, int readORwrite, int wordORbyte);
-
-extern unsigned short MDR, MAR, IR;    // declare Mem Data Reg, Mem Address Reg, and Instruction Reg
+/* External Globals */
+extern unsigned short MDR, MAR, IR;   
 extern word_byte regFile REG_SIZE;
 
-// void runProgram();
+/* Emulation and Debugging Functions */
 void runProgram();
-
-// void printProgramOptions(char * command);
 void memoryDump(unsigned short * bound1, unsigned short* bound2, int bouncCount);
 void printRegisterFile();
 void writeToMemory();
@@ -123,9 +135,12 @@ void printCommands();
 void updatePC();
 void mainMemoryDump(char* command);
 void switchCacheMode();
-void printDebugCommands();
+void printSettingCommands();
 void commandPrompt(char *selection);
 void manageBreakpoint(unsigned short* breakPoint);
 void switchStepMode();
+void switchReplPols();
+
+extern void bus(unsigned short addr, unsigned short* data, int readORwrite, int wordORbyte);
 
 #endif /* EMULATOR_H */

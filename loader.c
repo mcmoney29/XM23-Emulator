@@ -1,12 +1,13 @@
 /*
-Wednesday, July 26, 2023 - loader.c
+Tuesday, August 1, 2023 - loader.c
 - Defines functions that allow for the emulator to read s-records and
   write them into memory
 */
 
 #include "loader.h"
 
-extern int loadFlag;
+extern unsigned char loadFlag;
+extern mem memory;
 
 int loadFile(){
   /* Initialize Automatics */
@@ -124,7 +125,8 @@ void executeRecord(char buffer[], unsigned short* pgmCnt, char* programName){
     case 1:
       /* Save Data to Memory */
       for(int i = 0; i < length-3; i++)
-        bus(address+i, &data[i], WRITE, BYTE);
+        // busv2(address+i, &data[i], WRITE, BYTE_);
+        memory.byte[address+i] = data[i];
     break;
     case 9:
       /* Set Program Counter */

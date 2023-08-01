@@ -1,0 +1,43 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test07.asm
+Time of assembly: Mon 31 Jul 2023 11:01:21 
+  1	    	     	; Test #07
+  2	    	     	; -> Cache Test
+  3	    	     	; ECED 3403
+  4	    	     	; 30 July 2023
+  5	    	     	;
+  6	    	     	loc	equ	#2010
+  7	    	     	;
+  8	    	     		org	#1000		; Sets the assembler origin to #1000
+  9	    	     	Start				
+ 10	    	     	;
+ 11	1000	7900		movh	loc,R0		; R0 <- #2000
+ 12	1002	6082		movl	loc,R2		; R2 <- #0010
+ 13	    	     	;
+ 14	    	     	Loop
+ 15	    	     	;
+ 16	1004	4089		add	$1,R1		; Increament R1
+ 17	1006	5C08		st	R1,R0		; Store value of R1 at mem[2000]
+ 18	1008	450A		cmp	R1,R2		; Compares R0 and R1
+ 19	100A	27FC		bne 	Loop		; Loops if R1 != #10
+ 20	    	     	;
+ 21	    	     		end 	Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Loop                               	REL	1004	4100	PRI
+Start                              	REL	1000	4096	PRI
+loc                                	CON	2010	8208	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\XM23 Emulator\tests\test07.xme
+

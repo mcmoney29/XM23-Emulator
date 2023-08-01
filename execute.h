@@ -1,5 +1,5 @@
 /* 
-Wednesday, July 26, 2023 - execute.h
+Tuesday, August 1, 2023 - execute.h
 - Declares functions that assist in the decoding process done by decode()
 - Declares the update psw function
 */
@@ -31,5 +31,8 @@ void ST_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag);
 
 /* Update PSW Function */
 void update_psw(unsigned short, unsigned short, unsigned short, unsigned short);
+
+/* External Functions */
+extern void cacheBus(unsigned short addr, unsigned short *data, char readORwrite, char wordORbyte); // "cache.h"
 
 #endif /* EXECUTE_H */

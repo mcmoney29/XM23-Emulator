@@ -1,5 +1,5 @@
 /*
-Thursday, July 20, 2023 - cpu.c
+Tuesday, August 1, 2023 - cpu.c
 - Function definitions for CPU actions
 */
 
@@ -18,7 +18,7 @@ void tick(){
 }
 
 void fetch() {
-  IR = cache[sendCacheLine(PC.word)]->data->word;
+  cacheBus(PC.word, &IR, READ, WORD_);
   PC.word += 2;
   cpu_time++;
 }
@@ -112,17 +112,40 @@ void execute(unsigned short arg[]){
     - STR
     ******************************************/
     case LDR_G:
-      if(arg[2])        // BYTE
+      if(arg[2])        // BYTE_
         Rx(arg[4]).byte[0] = memory.byte[Rx(arg[3]).byte[0]]; 
-      else              // WORD
+      else              // WORD_
         Rx(arg[4]).word = memory.word[Rx(arg[3]).word>>1];
     break;
     case STR_G:
-      if(arg[2])        // BYTE
+      if(arg[2])        // BYTE_
         memory.byte[Rx(arg[3]).byte[0]] = Rx(arg[4]).byte[0]; 
-      else              // WORD
+      else              // WORD_
         memory.word[Rx(arg[3]).word>>1] = Rx(arg[4]).word;
     break;
+    default: printf("Invalid argument\n"); break;
   }
   cpu_time++;
+}
+
+/* Bus Function */
+extern mem memory;
+extern int cacheMode;
+
+void bus(unsigned short addr, unsigned short* data, int readORwrite, int wordORbyte){
+  switch(readORwrite){
+  case READ:
+    switch(wordORbyte){
+      case WORD_: *data = memory.word[addr >> 1]; break; 
+      case BYTE_: *data = memory.byte[addr] & 0xFF; break;  
+    }
+  break;
+  case WRITE:
+    switch(wordORbyte){
+      case WORD_: memory.word[addr >> 1] = *data; break;  
+      case BYTE_: memory.byte[addr] = *data & 0xFF; break;
+    }
+  break;
+ }
+ cpu_time += 3;
 }

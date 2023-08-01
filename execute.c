@@ -1,5 +1,5 @@
 /*
-Wednesday, July 26, 2023 - execute.c
+Tuesday, August 1, 2023 - execute.c
 - Defines functions that assist in the decoding process done by decode()
 - Defines the update PSW function
 - Functions are passed values from the argument array
@@ -55,7 +55,7 @@ void DADD_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   BCD_NUM SRC_BCD = WORDBYTE_to_BCD(SRC);         // Convert SRC to BCD
   BCD_NUM result;
 
-  nibbles = WORD_BYTE_Flag ? 2 : 4;   // Set nibbles based on WORD/BYTE flag
+  nibbles = WORD_BYTE_Flag ? 2 : 4;   // Set nibbles based on WORD_/BYTE_ flag
 
   /* Calculate Decimal ADD */
   for(int i = 0; i < nibbles; i++){
@@ -85,14 +85,14 @@ void CMP_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
 void XOR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res;
   if(WORD_BYTE_Flag){
-    /* BYTE */
+    /* BYTE_ */
     res = Rx(DST).byte[0] ^ SRC.byte[0];
-    update_psw(SRC.word, Rx(DST).word, res, BYTE);
+    update_psw(SRC.word, Rx(DST).word, res, BYTE_);
     Rx(DST).byte[0] = res & 0xFF;
   } else{
-    /* WORD */
+    /* WORD_ */
     res = Rx(DST).word ^ SRC.word;
-    update_psw(SRC.word, Rx(DST).word, res, WORD);
+    update_psw(SRC.word, Rx(DST).word, res, WORD_);
     Rx(DST).word = res;
   }
 }
@@ -100,14 +100,14 @@ void XOR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
 void AND_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res;
   if(WORD_BYTE_Flag){
-    /* BYTE */
+    /* BYTE_ */
     res = Rx(DST).byte[0] & SRC.byte[0];
-    update_psw(SRC.word, Rx(DST).word, res, BYTE);
+    update_psw(SRC.word, Rx(DST).word, res, BYTE_);
     Rx(DST).byte[0] = res & 0xFF;
   } else{
-    /* WORD */
+    /* WORD_ */
     res = Rx(DST).word & SRC.word;
-    update_psw(SRC.word, Rx(DST).word, res, WORD);
+    update_psw(SRC.word, Rx(DST).word, res, WORD_);
     Rx(DST).word = res;
   }
 }
@@ -115,14 +115,14 @@ void AND_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
 void OR_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
   unsigned short res = Rx(DST).word;
   if(WORD_BYTE_Flag){
-    /* BYTE */
+    /* BYTE_ */
     res = Rx(DST).byte[0] | SRC.byte[0];
-    update_psw(SRC.word, Rx(DST).word, res, BYTE);
+    update_psw(SRC.word, Rx(DST).word, res, BYTE_);
     Rx(DST).byte[0] = res & 0xFF;
   } else{
-    /* WORD */
+    /* WORD_ */
     res = Rx(DST).word | SRC.word;
-    update_psw(SRC.word, Rx(DST).word, res, WORD);
+    update_psw(SRC.word, Rx(DST).word, res, WORD_);
     Rx(DST).word = res;
   }
 }
@@ -150,9 +150,9 @@ void BIS_Func(unsigned DST, word_byte SRC, unsigned WORD_BYTE_Flag){
 
 void MOV_Func(unsigned DST, unsigned SRC, unsigned WORD_BYTE_Flag){
   if(WORD_BYTE_Flag)  
-    Rx(DST).byte[0] = Rx(SRC).byte[0]; /* BYTE */
+    Rx(DST).byte[0] = Rx(SRC).byte[0]; /* BYTE_ */
   else  
-    Rx(DST).word = Rx(SRC).word;  /* WORD */
+    Rx(DST).word = Rx(SRC).word;  /* WORD_ */
 }
 
 void SWAP_Func(unsigned DST, unsigned SRC){
@@ -201,52 +201,54 @@ void SXT_Func(unsigned DST){
     Rx(DST).byte[1] = 0x00;
 }
 
-void LD_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag){
+void LD_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned wordORbyte){
+  printf("LD_Func()\n");
   switch(PDI){
-    case 0: /* Unmodified Register [R] */          
-      if(WORD_BYTE_Flag)
-        Rx(DST).byte[0] = memory.byte[Rx(SRC).word];
-      else            
-        Rx(DST).word = memory.word[Rx(SRC).word >> 1];
+    case 0: /* Unmodified Register [R] */
+      if(wordORbyte){
+        cacheBus(Rx(SRC).byte[0], &Rx(DST).word, READ, BYTE_);
+       } else{
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, WORD_);
+       }
     break; 
 
     case 1: /* Post Increment [R+] */          
-      if(WORD_BYTE_Flag){ // if byte instruction
-        Rx(DST).byte[0] = memory.byte[Rx(SRC).word];
+      if(wordORbyte){
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, BYTE_);
         Rx(SRC).word++; 
-      } else{          // if word instruction
-        Rx(DST).word = memory.word[Rx(SRC).word >> 1];
+      } else{ 
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, WORD_);
         Rx(SRC).word += 2;
       }
     break;
 
     case 2: /* Post Decrement [R-] */          
-      if(WORD_BYTE_Flag){ // if byte instruction
-        Rx(DST).byte[0] = memory.byte[Rx(SRC).word];
+      if(wordORbyte){
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, BYTE_);
         Rx(SRC).word--; 
-      } else{          // if word instruction
-        Rx(DST).word = memory.word[Rx(SRC).word >> 1];
+      } else{
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, WORD_);
         Rx(SRC).word -= 2;
       }
     break;
 
     case 5: /* Pre Increment [+R] */          
-      if(WORD_BYTE_Flag){ // if byte instruction
-        Rx(SRC).word++; 
-        Rx(DST).byte[0] = memory.byte[Rx(SRC).word];
-      } else{          // if word instruction
+      if(wordORbyte){
+        Rx(SRC).word++;
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, BYTE_);
+      } else{
         Rx(SRC).word += 2;
-        Rx(DST).word = memory.word[Rx(SRC).word >> 1];
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, WORD_);
       }
     break;
 
     case 6: /* Pre Decrement [-R] */
-      if(WORD_BYTE_Flag){ // if byte instruction
+      if(wordORbyte){
         Rx(SRC).word--; 
-        Rx(DST).byte[0] = memory.byte[Rx(SRC).word];
-      } else{          // if word instruction
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, BYTE_);
+      }else{
         Rx(SRC).word -= 2;
-        Rx(DST).word = memory.word[Rx(SRC).word >> 1];
+        cacheBus(Rx(SRC).word, &Rx(DST).word, READ, WORD_);
       }
     break;
   }
@@ -256,48 +258,48 @@ void ST_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag){
   switch(PDI){
     case 0: /* Unmodified Register [R] */          
       if(WORD_BYTE_Flag)
-        memory.byte[Rx(SRC).word] = Rx(DST).byte[0];
+        cacheBus(Rx(DST).word, &Rx(SRC).word, WRITE, BYTE_);
       else            
-        memory.word[Rx(SRC).word >> 1] = Rx(DST).word;
+        cacheBus(Rx(DST).word, &Rx(SRC).word, WRITE, WORD_);
     break; 
 
     case 1: /* Post Increment [R+] */          
-      if(WORD_BYTE_Flag){ // if byte instruction
-        memory.byte[Rx(SRC).word] = Rx(DST).byte[0];
+      if(WORD_BYTE_Flag){
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, BYTE_);
         Rx(SRC).word++; 
-      } else{          // if word instruction
-        memory.word[Rx(SRC).word >> 1] = Rx(DST).word;
+      } else{
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, WORD_);
         Rx(SRC).word += 2;
       }
     break;
 
     case 2: /* Post Decrement [R-] */          
-      if(WORD_BYTE_Flag){ // if byte instruction
-        memory.byte[Rx(SRC).word] = Rx(DST).byte[0];
+      if(WORD_BYTE_Flag){
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, BYTE_);
         Rx(SRC).word--; 
-      } else{          // if word instruction
-        memory.word[Rx(SRC).word >> 1] = Rx(DST).word;
+      } else{
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, WORD_);
         Rx(SRC).word -= 2;
       }
     break;
 
     case 5: /* Pre Increment [+R] */          
-      if(WORD_BYTE_Flag){ // if byte instruction
+      if(WORD_BYTE_Flag){
         Rx(SRC).word++; 
-        memory.byte[Rx(SRC).word] = Rx(DST).byte[0];
-      } else{          // if word instruction
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, BYTE_);
+      } else{         
         Rx(SRC).word += 2;
-        memory.word[Rx(SRC).word >> 1] = Rx(DST).word;
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, WORD_);
       }
     break;
 
     case 6: /* Pre Decrement [-R] */
-      if(WORD_BYTE_Flag){ // if byte instruction
+      if(WORD_BYTE_Flag){
         Rx(SRC).word--; 
-        memory.byte[Rx(SRC).word] = Rx(DST).byte[0];
-      } else{          // if word instruction
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, BYTE_);
+      } else{          
         Rx(SRC).word -= 2;
-        memory.word[Rx(SRC).word >> 1] = Rx(DST).word;
+        cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, WORD_);
       }
     break;
   }

@@ -1,10 +1,40 @@
-v. 0.4.0 (Initial Commit)
-- Created from version 0.3.4 (Lab #3 submission)
-- All Lab 3 specific logic removed (print statments of instructions, etc.)
+v. 1.1.0 (Current Version)
+- Created cacheBus() to can be used by Fetch(), LD, and ST
+- Fixed issue with ST where DST and SRC were decoded backwards
+- Implemented Different Cache Modes and Replacement Policies
+- Moved bus to cpu.h/cpu.C
+- Rearranged menu Options
+- This version was submitted for Assignment 2
 
-v. 0.4.1 (June 12, 2023)
-- All instructions required for Assignment 1 are decoded into opcode and operands and sent to exectute();
-  -> Instruction Count has been removed, deemed unecessary
+v. 1.0.1 (July 20, 2023)
+- Added cache.h/cache.c
+- Integrated associative mapping cache
+- Removed run program as a stand alone function. Merged into main menu for simplicity
+- Created direct mapping option for cache
+- Added logic for memory dump command to send in bounds directly with the command 
+  -> Add in for other commands in future versions
+- Reversed order of patch_notes.c
+
+v. 1.0.0 (July 2, 2023)
+- Fixed bug with length always saving as 30
+- Fixed numerous bugs with instruction execution
+- Committed test to be ran to confirm the emulator's correctness
+- This version was submitted for Assignment 1
+
+v. 0.4.4 (June 21, 2023)
+- Added remaining execution functions 
+- Reenabled main execution loop
+
+v. 0.4.3 (June 18, 2023)
+- Finished implementation of ADD_SUB()
+- Added DADD_Func()
+- Added BCD to word_byte and word_byte to BCD
+  -> BUG: BCD_NUM.word and nib array do not share memory locations
+- Added CMP_Func()
+- Worked out PSW issue of not being able to update global PSW
+- Added XOR through BIT functions
+- Execution loop in main.c has been disabled for test statements
+  -> Non-permanent edit
 
 v. 0.4.2 (June 14, 2023)
 - Created execute.c and execute.h
@@ -13,17 +43,10 @@ v. 0.4.2 (June 14, 2023)
   -> Only ADDs are working, need to change function to accept values rather than
      register numbers such that 1's compliments can be sent in, as well as constants
 
-v. 0.4.3 (June 18, 2023)
-- Finished implementation of ADD_SUB()
-- Added DADD_Func()
-- Added BCD to word_byte and word_byte to BCD
-  -> BUG: BCD_NUM.word and nib array do not share memory locations.
-- Added CMP_Func()
-- Worked out PSW issue of not being able to update global PSW
-- Added XOR through BIT functions
-- Exection loop in main.c has been disabled for test statements
-  -> Non-permantent edit
+v. 0.4.1 (June 12, 2023)
+- All instructions required for Assignment 1 are decoded into opcode and operands and sent to execute();
+  -> Instruction Count has been removed, deemed unnecessary
 
-v. 0.4.4 (June 21, 2023)
-- Added remaining execution functions 
-- Reenabled main execution loop
+v. 0.4.0 (Initial Commit)
+- Created from version 0.3.4 (Lab #3 submission)
+- All Lab 3 specific logic removed (print statements of instructions, etc.)

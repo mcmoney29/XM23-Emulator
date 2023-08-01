@@ -1,5 +1,5 @@
 /*
-Wednesday, July 26, 2023 - cache.c
+Tuesday, August 1, 2023 - cache.c
 - Defines cache functions and print function
 - Defines cachelines and cache structures
 */
@@ -7,90 +7,79 @@ Wednesday, July 26, 2023 - cache.c
 
 extern cacheline* cache[CACHE_SIZE];  // bring in external cache line
 extern mem memory[MEM_SIZE];
-extern int cacheMode, cpu_time;
+extern unsigned char cacheMode, cpu_time, replPol;
 
 /* Creates a New Cache Line */
 cacheline* createCacheline(unsigned short address, unsigned short data){
   cacheline* newLine = malloc(sizeof(cacheline));
   word_byte* new = malloc(sizeof(word_byte));
-  new->word = data;
 
-  newLine->age = 0;
+  new->word = data;
   newLine->address = address;
-  newLine->dirtyBit = 0;
   newLine->data = new;
+  newLine->age = 0;
+  newLine->dirtyBit = 0;
   
   return newLine;
 }
 
-/* Sends a Cache Line 
-- If HIT: ages younger cache lines, resets age, and returns line #
-- If MISS: adds new address to the cache, ages all other lines, and returns line #
-*/
-int sendCacheLine(unsigned short address){
-  /* Check for hit/miss */
-  int searchResult = searchCache(address);
-  //printf("searchResult = %d\n", searchResult);
-  /* Execute Based on Hit/Miss */
-  if(searchResult >= 0){
-  /* Hit */
-    switch(cacheMode){
-      case ASC:
-        ageCache(cache[searchResult]->age); // Age all cache lines younger than hit line
-        cache[searchResult]->age = 0;       // Reset line's age 
-      break;
-      case DIR: break;
-      case HYB:
-      /* TBD */
-      break;
-    }
-    return searchResult; /* exit - hit: return line # of hit */
-  }
+/* Cache Bus */
+void cacheBus(unsigned short addr, unsigned short *data, char readORwrite, char wordORbyte){
+  int vacancy, index, searchResult = searchCache(addr);
+  switch (searchResult == -1) {
+    case HIT:
+      ageCache(cache[searchResult]->age);                       // Age all younger cachelines
+      cache[searchResult]->age = 0;                             // Reset hit line's age
+      index = (searchResult == -1) ? LSN(addr) : searchResult;  // Set Cache index based on hit/miss
 
-  /* Miss */
-  cacheline* new = createCacheline(address, memory->word[address >> 1]);
-  cpu_time += 2;
+      if(readORwrite) {
+        cache[index]->data->word = *data;                       // WRITE: Save data passed to cacheline
 
-  switch(cacheMode){
-    case ASC:
-      /* Associative */
-      /* Check for Vacant Cache Line */
-      
-      for(int i = 0; i < CACHE_SIZE; i++){
-        if(cache[i] == NULL){
-          ageCache(CACHE_SIZE);   // Age all cache lines
-          cache[i] = new;         // Save new line to cache
-          return i; /* exit - miss, vacant cache */
+        if(!replPol && readORwrite) {
+          bus(addr, data, WRITE, WORD_);              // WRITE - WT: Save data passed to mem if write through is selected
         }
+        else{
+          cache[index]->dirtyBit = 1;                        // WRITE - WB: Set Dirty Bit
+        }
+      } else{
+        *data = cache[index]->data->word;                       // READ: Save value of hit line to data
       }
+    break;
 
-      /* Full Cache */
-      int oldestIndex = removeOldest();
-      ageCache(CACHE_SIZE);       // Age all cache lines
-      cache[oldestIndex] = new;   // Save new line to cache
-      return oldestIndex; /* exit - miss, full cache */
+    case MISS:
+      ageCache(CACHE_SIZE);                                       // Age all cache lines
+      if(!readORwrite){
+        bus(addr, data, READ, wordORbyte);
+      }
+      if(readORwrite && !replPol){
+        bus(addr, data, WRITE, wordORbyte); // Read/Write data to/from memory[addr]
+      }
+      if(cacheMode){
+      /* Associative */
+        vacancy = searchForVacantLine();                          // Search for Empty Line [Line ID if vacancy | -1 if full]
+        if(vacancy >= 0){
+          cache[vacancy] = createCacheline(addr, *data);          // Save new line to vacant line
+        } else{
+          cache[removeOldest()] = createCacheline(addr, *data);   // Replace oldest line
+        }
+      } else{
+        /* Direct */
+        removeCacheLine(LSN(addr));                               // Remove Line if Needed (Check is done in function)
+        cache[LSN(addr)] = createCacheline(addr, *data);          // Define New Cacheline
+      }
     break;
-    case DIR:
-      /* Direct */
-      //printf("Direct Cache Mode\n");
-      cache[LSN(address)] = new;
-      return LSN(address);
-    break;
-    case HYB:
-      /* Hybrid */
-      return -1;
-    break;
-  }  
-  return -1;
+
+    /* Unknown Bus State */
+    default: printf("Error: Unknown Cache Bus State\n"); break;
+  }
+  return;
 }
 
 
 /* Age Lines in Cache */
 void ageCache(unsigned int maxAge){
   for(int i = 0; i < CACHE_SIZE; i++){
-    if(cache[i] != NULL) {
-      if(cache[i]->age < maxAge) cache[i]->age++;
-    }
+    if(cache[i] != NULL && cache[i]->age < maxAge) cache[i]->age++;
   }
 }
 
@@ -99,70 +88,79 @@ void ageCache(unsigned int maxAge){
 - Returns -1 for a miss
 */
 int searchCache(unsigned short address){
-  //printf("searching cache for %04X using mode #%c\n", address, cacheMode);
   switch(cacheMode){
     case ASC:
       /* Associative */
-      //printf("searching ASC\n");
-      for(int i = 0; i < CACHE_SIZE; i++){
-        if(cache[i] != NULL){
-          //printf("cache[%d]->address = %04X and cache[%d]->data = %04X\n", i, cache[i]->address, i, cache[i]->data->word);
-          if(cache[i]->address == address){
-            //printf("Hit at cache line #%d\n", i);
-          return i;
-          }
-      }
-    }
-    //printf("Miss :(\n");
-    return -1; // miss
+      for(int i = 0; i < CACHE_SIZE; i++)
+        if(cache[i] != NULL && cache[i]->address == address) return i; // Return index if hit
+      return -1;       // Return -1 for miss
     break;
     case DIR:
       /* Direct */
-      if(cache[LSN(address)] != NULL && cache[LSN(address)]->address == address){
-        return LSN(address);  // if address in location with = LSN then return hit
-      }
-      else return -1; // miss
-    break;
-    case HYB:
-      /* Hybrid */
-      return -1;
+      if(cache[LSN(address)] != NULL && cache[LSN(address)]->address == address) return LSN(address); // Return LSN for hit
+      else return -1;  // Return -1 for miss
     break;
   }
   return -1;
 }
 
-/* Remove the Least Recently Used Cache Line from the Cache */
+/* Remove the Least Recently Used Cache Line from the Cache 
+- Returns oldest cacheline ID (after it is removed)
+*/
 int removeOldest(){
-  int oldestAge = 0, oldestIndex = 0;
+  int oldestAge = 0, oldestIndex;
 
   /* Cycle through cache, searching for oldest */
   for(int i = 0; i < CACHE_SIZE; i++){
-    if(cache[i] != NULL){
-      if(cache[i]->age > oldestAge){
-        oldestAge = cache[i]->age;
-        oldestIndex = i;
-      }
+    if(cache[i] != NULL && cache[i]->age > oldestAge){
+      oldestAge = cache[i]->age;            // Update oldest age
+      oldestIndex = i;                      // Update oldest index
     }
   }
-  if(cache[oldestIndex]->dirtyBit){
-    bus(cache[oldestIndex]->address, &cache[oldestIndex]->data->word, WRITE, WORD);
+
+  removeCacheLine(oldestIndex);               // Remove cacheline
+  return oldestIndex;                         // Return index of oldest line
+}
+
+/* Removes a Cache Line */
+void removeCacheLine(int lineID){
+  /* Check cache line exists */
+  if(cache[lineID] == NULL) return;
+
+  /* Remove Line */
+  if(cache[lineID]->dirtyBit && replPol == WB){
+    memory->word[cache[lineID]->address >> 1] = cache[lineID]->data->word;
   }
-  free(cache[oldestIndex]);   // Free oldest cache lines #moved here from sendCacheLine()
-  printf("Removed cache line #%d\n", oldestIndex);
-  return oldestIndex;
+  free(cache[lineID]);   // Free oldest cache line
 }
 
 /* Prints Cache */
 void printCache(){
   for(int i = 0; i < CACHE_SIZE; i++){
     if(cache[i] != NULL){
-      printf("%2d: [%d][%04X][%04X]", i, cache[i]->dirtyBit, cache[i]->address, cache[i]->data->word);
-      if(cacheMode != '2') printf("[%X]", cache[i]->age);
+      printf("%2d: ", i);                             // Print Line ID
+      if(replPol) printf("[%d]", cache[i]->dirtyBit); // Print dirtyBit (if replacement policy is WB)
+      printf("[%04X][%04X]", cache[i]->address, cache[i]->data->word); // Print Line
+      if(cacheMode) printf("[%X]", cache[i]->age);    // Print age (if using associative mapping)
     }
     else{
-      printf("%2d: [-][----][----]", i);
-      if(cacheMode != '2') printf("[-]");
+      printf("%2d: ", i);                             // Print Line ID
+      if(replPol) printf("[-]");                      // Print empty dirtyBit (if replacement policy is WB)
+      printf("[----][----]");                      // Print empty Line
+      if(cacheMode) printf("[-]");                    // Print empty age (if using associative mapping)
     }
     printf("\n");
   }
 }
+
+/* Search for Empty Cache Line
+- Returns line ID if vacancy is found
+- Returns -1 if cache is full
+*/
+int searchForVacantLine(){
+  for(int i = 0; i < CACHE_SIZE; i++){
+    if(cache[i] == NULL) return i; // Vacancy
+  }
+  return -1; // No Vacancy
+}
+
