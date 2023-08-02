@@ -101,11 +101,20 @@ void decode_MOV_to_SXT(unsigned short argument[]){
     case 0: argument[0] = MOV_G;  break;
     case 1: argument[0] = SWAP_G; break;
     case 2: decode_SRA_to_SXT(argument); break;
-    case 3: break;    // error -> SETPRI to CLRCC, not included in assignment 1
+    case 3: decode_SETPRI_to_CLRCC(argument); return;
   }
   argument[1] = WB(IR);     // Word/Byte
   argument[2] = SRC(IR);    // Source Register (ignored by SRA to SXT during executing) 
   argument[3] = DST(IR);    // Destination Register
+}
+
+void decode_SETPRI_to_CLRCC(unsigned short argument[]){
+  switch((IR >> 5) & 0x03){
+    case 0: /* SETPRI/SVC */ break;
+    case 1: argument[0] = SETCC_G; break;
+    case 2: argument[0] = CLRCC_G; break;
+  }
+  argument[1] = IR & 0x001F;
 }
 
 void decode_LD_to_ST(unsigned short argument[], unsigned char LD_ST_Flag){

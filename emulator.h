@@ -50,7 +50,7 @@ Tuesday, August 1, 2023 - emulator.h
 #define CACHE_SIZE 16
 #define LSN(x) x & 0x000F
 
-/* State Flags */
+/* State Variables */
 enum RW_Flag {READ, WRITE};
 enum WB_Flag {WORD_, BYTE_};
 enum RC_Flag {REG, CONST};
@@ -59,6 +59,8 @@ enum LD_ST_Flag {LD, ST};
 enum cacheModes {ASC = 255, DIR = 0};   // Associative = '1', Direct = '2', Hybrid = '3'
 enum replPols {WB = 255, WT = 0};
 enum HIT_MISS {HIT, MISS};
+enum CEX_States {IGNORE, DO_THEN, DO_ELSE};
+enum CEX_Codes {EQ, NE, CS, CC, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, TR, FL};
 
 /* Cache Bus States */
 enum cacheBusStates {
@@ -111,16 +113,23 @@ BCD_NUM WORDBYTE_to_BCD(word_byte);
 
 /* PSW */
 typedef struct PSW_Bits{
-  unsigned        c: 1;      // Carry
-  unsigned        z: 1;      // Zero
-  unsigned        n: 1;      // Negative
-  unsigned      slp: 3;      // SLeeP (unused in Assignment 1)
-  unsigned        v: 1;      // oVerflow
-  unsigned  current: 3;      // Current Priority
-  unsigned    fault: 1;      // Fault
-  unsigned reserved: 4;      
   unsigned     prev: 3;      // Previous Priority
+  unsigned reserved: 4;
+  unsigned    fault: 1;      // Fault
+  unsigned  current: 3;      // Current Priority
+  unsigned        v: 1;      // oVerflow
+  unsigned      slp: 1;      // SLeeP (unused in Assignment 1)
+  unsigned        n: 1;      // Negative
+  unsigned        z: 1;      // Zero
+  unsigned        c: 1;      // Carry
 } PSW_Bits;
+
+/* CEX State */
+typedef struct CEX_State{
+  char state;     // Ignore / DO_THEN / DO_ELSE
+  int TC;         // True Count
+  int FC;         // False Count
+} CEX_State;
 
 /* External Globals */
 extern unsigned short MDR, MAR, IR;   
@@ -140,6 +149,9 @@ void commandPrompt(char *selection);
 void manageBreakpoint(unsigned short* breakPoint);
 void switchStepMode();
 void switchReplPols();
+
+unsigned short PSW_to_WORD(PSW_Bits* PSW);
+void WORD_TO_PSW(PSW_Bits* PSW, unsigned short word);
 
 extern void bus(unsigned short addr, unsigned short* data, int readORwrite, int wordORbyte);
 

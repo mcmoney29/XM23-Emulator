@@ -28,6 +28,8 @@ void SWPB_Func(unsigned DST);
 void SXT_Func(unsigned DST);
 void LD_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag);
 void ST_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag);
+void setCEXState(unsigned char condition, unsigned char trueCount, unsigned char falseCount);
+void SET_CLR_CC_Func(unsigned short arg[]);
 
 /* Update PSW Function */
 void update_psw(unsigned short, unsigned short, unsigned short, unsigned short);

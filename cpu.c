@@ -10,11 +10,16 @@ extern int cpu_time;
 extern PSW_Bits* PSW;
 extern cacheline* cache[CACHE_SIZE];
 
+// #define CEX_DEBUG
+
 void tick(){
   unsigned short arg[MAX_OPERANDS];
   fetch();
-  decode(arg);
-  execute(arg);
+  if(checkCEXState()){
+    decode(arg);
+    execute(arg);
+    return;
+  }
 }
 
 void fetch() {
@@ -104,9 +109,7 @@ void execute(unsigned short arg[]){
       regFile[REG][arg[2]].byte[0] = arg[1];
       regFile[REG][arg[2]].byte[1] = 0xFF;
     break;
-    case MOVH_G:
-      regFile[REG][arg[2]].byte[1] = arg[1];
-    break;
+    case MOVH_G: regFile[REG][arg[2]].byte[1] = arg[1]; break;
     /******************************************
     - LDR
     - STR
@@ -123,7 +126,13 @@ void execute(unsigned short arg[]){
       else              // WORD_
         memory.word[Rx(arg[3]).word>>1] = Rx(arg[4]).word;
     break;
-    default: printf("Invalid argument\n"); break;
+    /*******************************************
+    - CEX
+    -> ARG 1 = COND, ARG 2 = TC, ARG 3 = FC
+    ********************************************/
+    case CEX_G: setCEXState(arg[1], arg[2], arg[3]); break;
+    case SETCC_G: case CLRCC_G: SET_CLR_CC_Func(arg); break;
+    default: printf("Invalid argument %04X\n", arg[0]); break;
   }
   cpu_time++;
 }
@@ -148,4 +157,25 @@ void bus(unsigned short addr, unsigned short* data, int readORwrite, int wordORb
   break;
  }
  cpu_time += 3;
+}
+
+/*
+- Checks the CEX State
+- Returns 1 to indicate to CPU to decode and execute
+- Returns 0 to indicate to CPU to skip
+*/
+int checkCEXState(){
+  /* Ignore CEX Check if in Ignore State */
+  if(CEX_->state == IGNORE) return 1;
+
+  /* Go through True/False Counts */
+  if(CEX_->TC){
+    CEX_->TC--;                         // Decrement True Count
+    return (CEX_->state == DO_THEN);    // Return 1 if DO_THEN and 0 if DO_ELSE
+  } else if(CEX_->FC){
+    CEX_->FC--;                         // Decrement False Count
+    return (CEX_->state == DO_ELSE);    // Return 0 if DO_THEN and 1 if DO_ELSE
+  }
+  CEX_->state = IGNORE;
+  return 1;
 }

@@ -30,6 +30,7 @@ void decode_ADD_to_ST(unsigned short[]);
   void decode_ADD_to_BIS(unsigned short[]);
   void decode_MOV_to_SXT(unsigned short[]);
     void decode_SRA_to_SXT(unsigned short[]);
+    void decode_SETPRI_to_CLRCC(unsigned short argument[]);
   void decode_CEX( unsigned short[]);
   void decode_LD_to_ST(unsigned short[], unsigned char);
 void decode_MOVL_to_MOVH(unsigned short[]);

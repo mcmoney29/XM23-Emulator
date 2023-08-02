@@ -9,8 +9,11 @@ Tuesday, August 1, 2023 - execute.c
 
 extern PSW_Bits* PSW;
 extern mem memory;
+extern CEX_State* CEX_;
 
-/* Update PSW */
+/* Update PSW 
+- Copyright Dr. Larry Hughes
+*/
 void update_psw(unsigned short src, unsigned short dst, unsigned short res, unsigned short wb){
   unsigned short mss, msd, msr;   // Most significant src, dst, and res bits 
   
@@ -32,6 +35,20 @@ void update_psw(unsigned short src, unsigned short dst, unsigned short res, unsi
   PSW->z = (res == 0);	               // Set Zero Bit
   PSW->n = (msr == 1);	               // Set Negative Bit
   PSW->v = overflow[mss][msd][msr]; 	 // Set oVerflow Bit
+}
+
+void SET_CLR_CC_Func(unsigned short arg[]){
+  unsigned short PSW_word = PSW_to_WORD(PSW);
+  
+  switch(arg[0]){
+    case CLRCC_G:
+      WORD_TO_PSW(PSW, PSW_word &= ~arg[1]);
+    break;
+    case SETCC_G:
+      WORD_TO_PSW(PSW, PSW_word |= arg[1]);
+    break;
+    default: printf("Error: unkown SET/CLRCC\n"); break;
+  }
 }
 
 /* ADD, ADDC, SUB, SUBC */
@@ -202,7 +219,6 @@ void SXT_Func(unsigned DST){
 }
 
 void LD_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned wordORbyte){
-  printf("LD_Func()\n");
   switch(PDI){
     case 0: /* Unmodified Register [R] */
       if(wordORbyte){
@@ -302,5 +318,29 @@ void ST_Func(unsigned DST, unsigned SRC, unsigned PDI, unsigned WORD_BYTE_Flag){
         cacheBus(Rx(SRC).word, &Rx(DST).word, WRITE, WORD_);
       }
     break;
+  }
+}
+
+void setCEXState(unsigned char condition, unsigned char trueCount, unsigned char falseCount){
+  CEX_->FC = falseCount;
+  CEX_->TC = trueCount;
+  switch(condition){
+    case EQ: CEX_->state = PSW->z ? DO_THEN : DO_ELSE; break;
+    case NE: CEX_->state = !(PSW->z) ? DO_THEN : DO_ELSE; break;
+    case CS: CEX_->state = PSW->c ? DO_THEN : DO_ELSE; break;
+    case CC: CEX_->state = !(PSW->z) ? DO_THEN : DO_ELSE; break;
+    case MI: CEX_->state = PSW->n ? DO_THEN : DO_ELSE; break;
+    case PL: CEX_->state = !(PSW->z) ? DO_THEN : DO_ELSE; break;
+    case VS: CEX_->state = PSW->v ? DO_THEN : DO_ELSE; break;
+    case VC: CEX_->state = !(PSW->v) ? DO_THEN : DO_ELSE; break;
+    case HI: CEX_->state = (PSW->c && !(PSW->z)) ? DO_THEN : DO_ELSE; break;
+    case LS: CEX_->state = (!(PSW->c) || PSW->z) ? DO_THEN : DO_ELSE; break;
+    case GE: CEX_->state = (PSW->n == PSW->v) ? DO_THEN : DO_ELSE; break;
+    case LT: CEX_->state = (PSW->n != PSW->v) ? DO_THEN : DO_ELSE; break;
+    case GT: CEX_->state = (!(PSW->z) && (PSW->n == PSW->v)) ? DO_THEN : DO_ELSE; break;
+    case LE: CEX_->state = (PSW->z || (PSW->n != PSW->v)) ? DO_THEN : DO_ELSE; break;
+    case TR: CEX_->state = DO_THEN; break;
+    case FL: CEX_->state = DO_ELSE; break;
+    default: CEX_->state = IGNORE; break;
   }
 }

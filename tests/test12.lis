@@ -1,0 +1,65 @@
+X-Makina Assembler - Version XM-23 Single Pass+ Assembler - Release 02.06.23
+Input file name: test12.asm
+Time of assembly: Tue 1 Aug 2023 23:15:04 
+  1	    	     	; Test #12
+  2	    	     	; -> 
+  3	    	     	; ECED 3403
+  4	    	     	; 1 August 2023
+  5	    	     	;
+  6	    	     		org	#1000
+  7	    	     	;
+  8	    	     	Start
+  9	    	     	;
+ 10	1000	4DA1		setcc	c
+ 11	1002	4DC2		clrcc	z
+ 12	1004	5209		cex	hi,$1,$1
+ 13	1006	4089		add 	$1,R1
+ 14	1008	4088		add 	$1,R0
+ 15	    	     	;
+ 16	100A	4DA2		setcc	z
+ 17	100C	4DC1		clrcc	c
+ 18	100E	5249		cex	ls,$1,$1
+ 19	1010	4089		add 	$1,R1
+ 20	1012	4088		add 	$1,R0			
+ 21	    	     	;
+ 22	1014	4DB4		setcc	nv
+ 23	1016	5289		cex	ge,$1,$1
+ 24	1018	4089		add 	$1,R1
+ 25	101A	4088		add 	$1,R0
+ 26	    	     	;
+ 27	101C	4DA4		setcc	n
+ 28	101E	4DD0		clrcc	v
+ 29	1020	52C9		cex	lt,$1,$1
+ 30	1022	4089		add 	$1,R1
+ 31	1024	4088		add 	$1,R0
+ 32	    	     	;
+ 33	1026	4DB4		setcc	nv
+ 34	1028	4DC2		clrcc	z
+ 35	102A	5309		cex	gt,$1,$1
+ 36	102C	4089		add 	$1,R1
+ 37	102E	4088		add 	$1,R0
+ 38	    	     	;
+ 39	1030	4DA4		setcc	n,z
+ 40	1032	4DD0		clrcc	v
+ 41	1034	5349		cex	le,$1,$1
+ 42	1036	4089		add 	$1,R1
+ 43	1038	4088		add 	$1,R0
+ 44	    	     	;
+ 45	    	     		end	Start
+
+Successful completion of assembly - 1P
+
+** Symbol table **
+Name                               	Type	Value	Decimal
+Start                              	REL	1000	4096	PRI
+R7                                 	REG	0007	7	PRI
+R6                                 	REG	0006	6	PRI
+R5                                 	REG	0005	5	PRI
+R4                                 	REG	0004	4	PRI
+R3                                 	REG	0003	3	PRI
+R2                                 	REG	0002	2	PRI
+R1                                 	REG	0001	1	PRI
+R0                                 	REG	0000	0	PRI
+
+.XME file: C:\Users\dmccarthy\Desktop\Computer Archtiecture\XM23 Emulator\tests\test12.xme
+

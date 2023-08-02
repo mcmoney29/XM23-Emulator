@@ -19,6 +19,7 @@ word_byte regFile REG_SIZE = {    // regFile[S/C][R#]
 
 mem memory[MEM_SIZE];                   // declare memory
 cacheline* cache[CACHE_SIZE];           // declare cache
+CEX_State* CEX_;                        // declare CEX state
 unsigned short MDR, MAR, IR;            // declare Memory Data Reg, Memory Address Reg, and Instruction Register
 int cpu_time = 0;
 unsigned char stepFlag, loadFlag, cacheMode, replPol;     // declare global state variables
@@ -29,7 +30,8 @@ unsigned short breakPoint;
 
 int main(){
   /* Initialize Variables */
-  PSW = malloc(sizeof(PSW_Bits));       // Allocate Memory for PSW.
+  PSW = malloc(sizeof(PSW_Bits));       // Allocate Memory for PSW
+  CEX_ = malloc(sizeof(CEX_State));     // Allocate Memory for CEX
   char selection[MAX_CMND_LENGTH];
 
   /* Initialize Control-C Software */
@@ -59,8 +61,9 @@ int main(){
       case '1': writeToMemory(); break;                              // Write to Memory
       case '2': updatePC(); break;                                   // Change PC
       case '3': switchStepMode(); break;                             // Switch Step Modes
-      case '4': switchCacheMode(); break;                           // Switch Cache Modes
-      case '5': switchReplPols(); break;
+      case '4': switchCacheMode(); break;                            // Switch Cache Modes
+      case '5': switchReplPols(); break;                             // Switch Replacement Policies
+      case '6': printf("State = %d, TC = %d, FC = %d\n", CEX_->state, CEX_->TC, CEX_->FC); break; // Print CEX State
       
       /* Unexpected Command */
       default:

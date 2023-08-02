@@ -1,4 +1,13 @@
-v. 1.1.0 (Current Version)
+v. 1.1.2
+- Added CEX, SETCC, CLRCC Instructions
+- Added CEX State, that determines the behavior of in tick()
+- Added tests 10, 11, 12, 13
+- Submitted for Lab 5
+
+v. 1.1.1 (August 1, 2023)
+- Pushed to git
+
+v. 1.1.0 (August 1, 2023)
 - Created cacheBus() to can be used by Fetch(), LD, and ST
 - Fixed issue with ST where DST and SRC were decoded backwards
 - Implemented Different Cache Modes and Replacement Policies

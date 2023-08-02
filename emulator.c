@@ -120,6 +120,7 @@ void printSettingCommands(){
   printf("[3] Switch Step Mode\n");
   printf("[4] Change Cache Modes\n");
   printf("[5] Switch Replacement Policy\n");
+  printf("[6] Print CEX State\n");
 }
 
 /* Update PC*/
@@ -211,4 +212,21 @@ void switchReplPols(){
   } else{
     printf("Replacement Policy is now Write-Through\n");
   }
+}
+
+unsigned short PSW_to_WORD(PSW_Bits* PSW){
+  unsigned short temp = (PSW->prev << 13) + (PSW->fault << 8) + (PSW->current << 5) + (PSW->v << 4) 
+  + (PSW->slp << 3) + (PSW->n << 2) + (PSW->z << 1) + PSW->c;
+  return temp;
+}
+
+void WORD_TO_PSW(PSW_Bits* PSW, unsigned short word){
+  PSW->c = Bn(0, word);
+  PSW->z = Bn(1, word);
+  PSW->n = Bn(2, word);
+  PSW->slp = Bn(3, word);
+  PSW->v = Bn(4, word);
+  PSW->current = (word >> 5) & 0x07;
+  PSW->fault = Bn(8, word);
+  PSW->prev = (word >> 13) & 0x07;
 }
