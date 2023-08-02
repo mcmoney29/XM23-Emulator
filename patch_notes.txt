@@ -1,4 +1,10 @@
-v. 1.1.2
+v. 1.1.3 (Current Version)
+- Modified LSN(x) to shirt right in order to more efficiently use cache for Direct Mapping
+- This version was resubmitted for Assignment 3
+- Renumbered test #10, #11, #12, #13 to #11, #12, #13, #14, respectively
+- Added new test 10
+
+v. 1.1.2 (August 1, 2023)
 - Added CEX, SETCC, CLRCC Instructions
 - Added CEX State, that determines the behavior of in tick()
 - Added tests 10, 11, 12, 13

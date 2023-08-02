@@ -48,7 +48,7 @@ Tuesday, August 1, 2023 - emulator.h
 
 /* Cache */
 #define CACHE_SIZE 16
-#define LSN(x) x & 0x000F
+#define LSN(x) (x >> 1) & 0x000F
 
 /* State Variables */
 enum RW_Flag {READ, WRITE};
